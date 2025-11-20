@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/services/">
+    <Project Path="QuestionService/QuestionService.csproj" />
+  </Folder>
   <Project Path="Overflow.AppHost/Overflow.AppHost.csproj" />
   <Project Path="Overflow.ServiceDefaults/Overflow.ServiceDefaults.csproj" />
 </Solution>
