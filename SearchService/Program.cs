@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using SearchService.Data;
@@ -12,33 +13,29 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 
-builder.Services.AddOpenTelemetry().WithTracing(providerBuilder =>
+builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
 {
-    providerBuilder
-        .SetResourceBuilder(ResourceBuilder.CreateDefault()
+    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
             .AddService(builder.Environment.ApplicationName))
         .AddSource("Wolverine");
 });
 
-builder.Host.UseWolverine(ops =>
+builder.Host.UseWolverine(opts =>
 {
-    ops.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
-    ops.ListenToRabbitQueue("questions.search", cfg => { cfg.BindExchange("questions"); });
+    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
+    opts.ListenToRabbitQueue("questions.search", cfg =>
+    {
+        cfg.BindExchange("questions");
+    });
 });
 
 var typesenseUri = builder.Configuration["services:typesense:typesense:0"];
-
-if (string.IsNullOrWhiteSpace(typesenseUri))
-{
-    throw new InvalidOperationException("typesense uri is missing");
-}
+if (string.IsNullOrEmpty(typesenseUri))
+    throw new InvalidOperationException("Typesense URI not found in config");
 
 var typesenseApiKey = builder.Configuration["typesense-api-key"];
-
-if (string.IsNullOrWhiteSpace(typesenseApiKey))
-{
-    throw new InvalidOperationException("typesense api key is missing");
-}
+if (string.IsNullOrEmpty(typesenseApiKey))
+    throw new InvalidOperationException("Typesense API key not found in config");
 
 var uri = new Uri(typesenseUri);
 builder.Services.AddTypesenseClient(config =>

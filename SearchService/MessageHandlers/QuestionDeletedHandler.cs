@@ -1,4 +1,4 @@
-﻿using Contracts;
+using Contracts;
 using SearchService.Models;
 using Typesense;
 

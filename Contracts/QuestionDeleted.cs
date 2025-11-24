@@ -1,3 +1,3 @@
-﻿namespace Contracts;
+namespace Contracts;
 
 public record QuestionDeleted(string QuestionId);

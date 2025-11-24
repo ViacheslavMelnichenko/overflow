@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using QuestionService.Data;
+using QuestionService.Services;
 using Wolverine;
 using Wolverine.RabbitMQ;
 
@@ -12,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<TagService>();
+
 builder.Services.AddAuthentication()
     .AddKeycloakJwtBearer(serviceName: "keycloak", realm: "overflow", options =>
     {
@@ -20,22 +24,22 @@ builder.Services.AddAuthentication()
     });
 builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
-builder.Services.AddOpenTelemetry().WithTracing(providerBuilder =>
+builder.Services.AddOpenTelemetry().WithTracing(traceProviderBuilder =>
 {
-    providerBuilder
-        .SetResourceBuilder(ResourceBuilder.CreateDefault()
+    traceProviderBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault()
             .AddService(builder.Environment.ApplicationName))
         .AddSource("Wolverine");
 });
 
-builder.Host.UseWolverine(ops =>
+builder.Host.UseWolverine(opts =>
 {
-    ops.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
-    ops.PublishAllMessages().ToRabbitExchange("questions");
+    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
+    opts.PublishAllMessages().ToRabbitExchange("questions");
 });
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -55,7 +59,7 @@ try
 catch (Exception e)
 {
     var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(e, "An error occurred while migrating the database.");
+    logger.LogError(e, "An error occurred while migrating or seeding the database.");
 }
 
 app.Run();

@@ -1,4 +1,4 @@
-﻿using Typesense;
+using Typesense;
 
 namespace SearchService.Data;
 
@@ -7,7 +7,7 @@ public static class SearchInitializer
     public static async Task EnsureIndexExists(ITypesenseClient client)
     {
         const string schemaName = "questions";
-
+        
         try
         {
             await client.RetrieveCollection(schemaName);
@@ -32,7 +32,7 @@ public static class SearchInitializer
         {
             DefaultSortingField = "createdAt"
         };
-
+        
         await client.CreateCollection(schema);
         Console.WriteLine($"Collection {schemaName} has been created.");
     }
