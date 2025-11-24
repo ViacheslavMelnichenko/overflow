@@ -1,16 +1,19 @@
 ﻿using System.Security.Claims;
+using Contracts;
+using FastExpressionCompiler;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuestionService.Data;
 using QuestionService.DTOs;
 using QuestionService.Models;
+using Wolverine;
 
 namespace QuestionService.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class QuestionsController(QuestionDbContext dbContext) : ControllerBase
+public class QuestionsController(QuestionDbContext dbContext, IMessageBus bus) : ControllerBase
 {
     [Authorize]
     [HttpPost]
@@ -34,6 +37,10 @@ public class QuestionsController(QuestionDbContext dbContext) : ControllerBase
 
         dbContext.Questions.Add(question);
         await dbContext.SaveChangesAsync();
+
+        await bus.PublishAsync(new QuestionCreated(question.Id, question.Title, question.Content,
+            question.CreatedAt, question.TagSlugs));
+
         return Created($"/questions/{question.Id}", question);
     }
 
@@ -89,6 +96,10 @@ public class QuestionsController(QuestionDbContext dbContext) : ControllerBase
         question.UpdatedAt = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync();
+
+        await bus.PublishAsync(new QuestionUpdated(question.Id, question.Title, question.Content,
+            question.TagSlugs.AsArray()));
+
         return NoContent();
     }
 
@@ -110,6 +121,9 @@ public class QuestionsController(QuestionDbContext dbContext) : ControllerBase
         dbContext.Questions.Remove(question);
 
         await dbContext.SaveChangesAsync();
+
+        await bus.PublishAsync(new QuestionDeleted(question.Id));
+
         return NoContent();
     }
 }
