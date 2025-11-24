@@ -7,7 +7,7 @@ var compose = builder.AddDockerComposeEnvironment("production")
 
 var keycloak = builder.AddKeycloak("keycloak", 6001)
     .WithDataVolume("keycloak-data")
-    .WithRealmImport("../infra/realms")
+    // .WithRealmImport("../infra/realms")
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
     .WithEnvironment("VIRTUAL_HOST", "id.overflow.local")
