@@ -1,0 +1,89 @@
+﻿# Continuous Deployment to Production for .NET Aspire Solution
+# Triggers on workflow_dispatch and optionally on push to main with environment: production
+name: CD-Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    # Only deploy on main with environment: production
+    # Add manual approval if desired
+
+jobs:
+  build-push-deploy:
+    runs-on: self-hosted
+    environment: production
+    env:
+      REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'docker.io' }}
+      IMAGE_TAG: prod-${{ github.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Optionally inject secrets from Infisical (OIDC method)
+      # - name: Inject secrets from Infisical
+      #   uses: infisical/secrets-action@v1
+      #   with:
+      #     method: oidc
+      #     env-slug: production
+      #     project-slug: overflow
+      #     identity-id: ${{ secrets.INFISICAL_IDENTITY_ID }}
+
+      - name: Setup .NET SDK (Aspire)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Login to Docker registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push Questions API image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/viacheslav/questions-api:${{ env.IMAGE_TAG }} -f QuestionService/Dockerfile .
+          docker push ${{ env.REGISTRY }}/viacheslav/questions-api:${{ env.IMAGE_TAG }}
+
+      - name: Build and push Search API image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/viacheslav/search-api:${{ env.IMAGE_TAG }} -f SearchService/Dockerfile .
+          docker push ${{ env.REGISTRY }}/viacheslav/search-api:${{ env.IMAGE_TAG }}
+
+      - name: Build and push Aspire Dashboard image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/viacheslav/aspire-dashboard:${{ env.IMAGE_TAG }} -f Overflow.AppHost/Dockerfile .
+          docker push ${{ env.REGISTRY }}/viacheslav/aspire-dashboard:${{ env.IMAGE_TAG }}
+
+      - name: Set up Kubeconfig for helios (k3s)
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_HELIOS }}" | base64 -d > $HOME/.kube/config
+
+      - name: Set kubectl context
+        run: |
+          kubectl config use-context default
+
+      - name: Deploy to Production with Helm
+        run: |
+          helm upgrade --install overflow-production charts/overflow \
+            --namespace apps-production \
+            --create-namespace \
+            --set questionsApi.image.tag=${{ env.IMAGE_TAG }} \
+            --set searchApi.image.tag=${{ env.IMAGE_TAG }} \
+            --set aspireDashboard.image.tag=${{ env.IMAGE_TAG }} \
+            -f charts/overflow/values-production.yaml
+        env:
+          # Pass secrets as env vars for Helm if needed
+          POSTGRES_CONNECTION_STRING: ${{ secrets.POSTGRES_CONNECTION_STRING }}
+          RABBITMQ_CONNECTION_STRING: ${{ secrets.RABBITMQ_CONNECTION_STRING }}
+          TYPESENSE_URL: ${{ secrets.TYPESENSE_URL }}
+          TYPESENSE_API_KEY: ${{ secrets.TYPESENSE_API_KEY }}
+          KEYCLOAK_AUTH_URL: ${{ secrets.KEYCLOAK_AUTH_URL }}
+          KEYCLOAK_CLIENT_ID: ${{ secrets.KEYCLOAK_CLIENT_ID }}
+          KEYCLOAK_CLIENT_SECRET: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+
+      - name: Validate deployment (pods)
+        run: kubectl get pods -n apps-production

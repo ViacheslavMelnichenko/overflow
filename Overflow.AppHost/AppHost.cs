@@ -1,28 +1,26 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var compose = builder.AddDockerComposeEnvironment("production")
-    .WithDashboard(dashboard => dashboard.WithHostPort(8080));
+// Ensure all configuration is loaded from environment variables
+// This enables Kubernetes/Helm to inject secrets/config at runtime
+builder.Configuration.AddEnvironmentVariables();
 
 var keycloak = builder.AddKeycloak("keycloak", 6001)
     .WithDataVolume("keycloak-data")
-    // .WithRealmImport("../infra/realms")
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
     .WithEnvironment("VIRTUAL_HOST", "id.overflow.local")
     .WithEnvironment("VIRTUAL_PORT", "8080");
 
-var postgres = builder.AddPostgres("postgres", port: 5432)
+var postgres = builder
+    .AddPostgres("postgres", port: 5432)
     .WithDataVolume("postgres-data")
     .WithPgAdmin();
 
-// var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
-
-var typesenseApiKey = builder.Environment.IsDevelopment()
-    ? builder.Configuration["Parameters:typesense-api-key"]
-      ?? throw new InvalidOperationException("Could not get typesense api key")
-    : "${TYPESENSE_API_KEY}";
+var typesenseApiKey = builder.Configuration["TYPESENSE_API_KEY"]
+    ?? throw new InvalidOperationException("Could not get TYPESENSE_API_KEY from environment");
 
 var typesense = builder.AddContainer("typesense", "typesense/typesense", "29.0")
     .WithArgs("--data-dir", "/data", "--api-key", typesenseApiKey, "--enable-cors")
@@ -38,7 +36,8 @@ var rabbitmq = builder.AddRabbitMQ("messaging")
     .WithDataVolume("rabbitmq-data")
     .WithManagementPlugin(port: 15672);
 
-var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
+var questionService = builder
+    .AddProject<Projects.QuestionService>("question-svc")
     .WithReference(keycloak)
     .WithReference(questionDb)
     .WithReference(rabbitmq)
@@ -46,9 +45,10 @@ var questionService = builder.AddProject<Projects.QuestionService>("question-svc
     .WaitFor(questionDb)
     .WaitFor(rabbitmq);
 
-
-var searchService = builder.AddProject<Projects.SearchService>("search-svc")
-    .WithEnvironment("typesense-api-key", typesenseApiKey)
+var searchService = builder
+    .AddProject<Projects.SearchService>("search-svc")
+    .WithReference(keycloak)
+    .WithEnvironment("TYPESENSE_API_KEY", typesenseApiKey)
     .WithReference(typesenseContainer)
     .WithReference(rabbitmq)
     .WaitFor(typesense)
@@ -68,7 +68,8 @@ var yarp = builder.AddYarp("gateway")
 
 if (!builder.Environment.IsDevelopment())
 {
-    builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
+    builder
+        .AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
         .WithEndpoint(80, 80, "nginx", isExternal: true)
         .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true);
 }

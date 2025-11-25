@@ -8,6 +8,9 @@ using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ensure all configuration is loaded from environment variables
+builder.Configuration.AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
