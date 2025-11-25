@@ -6,13 +6,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
-      - staging
+      - development
 
 jobs:
   build-push-deploy:
     runs-on: self-hosted
-    environment: staging
+    environment: Staging
     env:
       REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'docker.io' }}
       IMAGE_TAG: staging-${{ github.sha }}

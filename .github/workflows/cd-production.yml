@@ -7,13 +7,11 @@ on:
   push:
     branches:
       - main
-    # Only deploy on main with environment: production
-    # Add manual approval if desired
 
 jobs:
   build-push-deploy:
     runs-on: self-hosted
-    environment: production
+    environment: Production
     env:
       REGISTRY: ${{ secrets.DOCKER_REGISTRY || 'docker.io' }}
       IMAGE_TAG: prod-${{ github.sha }}
