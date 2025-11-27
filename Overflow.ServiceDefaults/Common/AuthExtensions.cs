@@ -1,28 +1,40 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Overflow.ServiceDefaults.Options;
 
 namespace Overflow.ServiceDefaults.Common;
 
 public static class AuthExtensions
 {
-    public static IServiceCollection AddKeyCloakAuthentication(this IServiceCollection services)
+    public static WebApplicationBuilder AddKeyCloakAuthentication(this WebApplicationBuilder builder)
     {
-        services.AddAuthentication()
-            .AddKeycloakJwtBearer(serviceName: "keycloak", realm: "overflow", options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.Audience = "overflow";
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidIssuers =
-                    [
-                        "http://localhost:6001/realms/overflow",
-                        "http://keycloak/realms/overflow",
-                        "http://id.overflow.local/realms/overflow",
-                    ]
-                };
-            });
+        builder.Services
+            .AddOptions<KeycloakOptions>()
+            .BindConfiguration(nameof(KeycloakOptions))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
-        return services;
+        var keycloakOptions = builder
+            .Services
+            .BuildServiceProvider()
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<KeycloakOptions>>().Value;
+
+        builder.Services
+            .AddAuthentication()
+            .AddKeycloakJwtBearer(
+                keycloakOptions.ServiceName,
+                keycloakOptions.Realm,
+                options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.Audience = keycloakOptions.Audience;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuers = keycloakOptions.ValidIssuers
+                    };
+                });
+
+        return builder;
     }
 }

@@ -20,4 +20,8 @@
       <ProjectReference Include="..\Overflow.ServiceDefaults\Overflow.ServiceDefaults.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Remove="appsettings.Production.json" />
+    </ItemGroup>
+
 </Project>

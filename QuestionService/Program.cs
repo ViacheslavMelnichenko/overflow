@@ -16,7 +16,7 @@ builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<TagService>();
-builder.Services.AddKeyCloakAuthentication();
+builder.AddKeyCloakAuthentication();
 
 builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
