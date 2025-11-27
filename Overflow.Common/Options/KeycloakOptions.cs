@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Overflow.ServiceDefaults.Options;
+namespace Overflow.Common.Options;
 
 public class KeycloakOptions
 {

@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Contracts;
+using Overflow.Contracts;
 using Typesense;
 
 namespace SearchService.MessageHandlers;

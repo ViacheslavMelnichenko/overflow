@@ -1,4 +1,4 @@
-using Contracts;
+using Overflow.Contracts;
 using SearchService.Models;
 using Typesense;
 

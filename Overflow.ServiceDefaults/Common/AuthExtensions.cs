@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Overflow.ServiceDefaults.Options;
+using Overflow.Common.Options;
 
 namespace Overflow.ServiceDefaults.Common;
 

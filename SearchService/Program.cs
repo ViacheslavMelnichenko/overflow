@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Overflow.ServiceDefaults;
 using Overflow.ServiceDefaults.Common;
 using SearchService.Data;
 using SearchService.Models;
@@ -15,32 +16,32 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 
-await builder.UseWolverineWithRabbitMqAsync(opts =>
-{
-    opts.ListenToRabbitQueue("questions.search", cfg =>
-    {
-        cfg.BindExchange("questions");
-    });
-    opts.ApplicationAssembly = typeof(Program).Assembly;
-});
-
-var typesenseUri = builder.Configuration["services:typesense:typesense:0"];
-if (string.IsNullOrEmpty(typesenseUri))
-    throw new InvalidOperationException("Typesense URI not found in config");
-
-var typesenseApiKey = builder.Configuration["typesense-api-key"];
-if (string.IsNullOrEmpty(typesenseApiKey))
-    throw new InvalidOperationException("Typesense API key not found in config");
-
-var uri = new Uri(typesenseUri);
-builder.Services.AddTypesenseClient(config =>
-{
-    config.ApiKey = typesenseApiKey;
-    config.Nodes = new List<Node>
-    {
-        new(uri.Host, uri.Port.ToString(), uri.Scheme)
-    };
-});
+// await builder.UseWolverineWithRabbitMqAsync(opts =>
+// {
+//     opts.ListenToRabbitQueue("questions.search", cfg =>
+//     {
+//         cfg.BindExchange("questions");
+//     });
+//     opts.ApplicationAssembly = typeof(Program).Assembly;
+// });
+//
+// var typesenseUri = builder.Configuration["services:typesense:typesense:0"];
+// if (string.IsNullOrEmpty(typesenseUri))
+//     throw new InvalidOperationException("Typesense URI not found in config");
+//
+// var typesenseApiKey = builder.Configuration["typesense-api-key"];
+// if (string.IsNullOrEmpty(typesenseApiKey))
+//     throw new InvalidOperationException("Typesense API key not found in config");
+//
+// var uri = new Uri(typesenseUri);
+// builder.Services.AddTypesenseClient(config =>
+// {
+//     config.ApiKey = typesenseApiKey;
+//     config.Nodes = new List<Node>
+//     {
+//         new(uri.Host, uri.Port.ToString(), uri.Scheme)
+//     };
+// });
 
 var app = builder.Build();
 

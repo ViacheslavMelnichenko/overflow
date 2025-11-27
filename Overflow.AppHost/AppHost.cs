@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting;
+using Overflow.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -13,18 +14,20 @@ if (builder.Environment.IsDevelopment())
     // Question Service configuration
     var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
         .WithReference(keycloak)
+        .WithKeycloakOptions(builder.Configuration)
         .WaitFor(keycloak);
 }
 else
 {
     // External Keycloak for staging/production
-    // var keycloakUrl = builder.Configuration["KeycloakOptions:Url"]
-    //     ?? throw new InvalidOperationException("Keycloak URL is not configured.");
-    // var keycloak = builder.AddConnectionString("keycloak", keycloakUrl);
-    //
-    // // Question Service configuration
-    // var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
-    //     .WithReference(keycloak);
+    var keycloakUrl = builder.Configuration["KeycloakOptions:Url"] 
+        ?? throw new InvalidOperationException("Keycloak URL is not configured.");
+    var keycloak = builder.AddConnectionString("keycloak", keycloakUrl);
+    
+    // Question Service configuration
+    var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
+        .WithReference(keycloak)
+        .WithKeycloakOptions(builder.Configuration);
 }
 
 
