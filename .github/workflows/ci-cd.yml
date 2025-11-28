@@ -9,6 +9,19 @@ on:
     branches:
       - development
       - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      branch:
+        description: 'Branch to deploy (leave empty for current branch)'
+        required: false
+        type: string
 
 # Add permissions for GITHUB_TOKEN to push to GitHub Container Registry
 permissions:
@@ -20,43 +33,48 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
+  # ============================================================================
+  # BUILD & TEST (runs on every push/PR)
+  # ============================================================================
   build-and-test:
+    name: 🏗️ Build & Test
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: ⚙️ Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore dependencies
+      - name: 📦 Restore dependencies
         run: dotnet restore Overflow.slnx
 
-      - name: Build
+      - name: 🔨 Build solution
         run: dotnet build Overflow.slnx --no-restore --configuration Release
 
-      - name: Test
+      - name: 🧪 Run tests
         run: dotnet test Overflow.slnx --no-build --configuration Release --verbosity normal
 
-      - name: Convert repository owner to lowercase
+      - name: 🔧 Setup environment
         id: repo_owner
         run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Log in to GitHub Container Registry
+      - name: 🔑 Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push QuestionService image
+      - name: 🐳 Build & push QuestionService
         run: |
           docker build -f QuestionService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }} .
           docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
 
-      - name: Build and push SearchService image
+      - name: 🐳 Build & push SearchService
         run: |
           docker build -f SearchService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }} .
           docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
@@ -67,7 +85,9 @@ jobs:
   deploy-staging:
     name: 🚀 Deploy to Staging
     needs: build-and-test
-    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
+    if: |
+      (github.ref == 'refs/heads/development' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
     runs-on: self-hosted
     environment: staging
     env:
@@ -76,6 +96,16 @@ jobs:
       OVERLAY: staging
     
     steps:
+      - name: 📋 Deployment Info
+        run: |
+          echo "🎯 Deploying to: STAGING"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "📦 Commit: ${{ github.sha }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "👤 Triggered by: ${{ github.actor }}"
+          fi
+
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
@@ -131,7 +161,9 @@ jobs:
   deploy-production:
     name: 🏭 Deploy to Production
     needs: build-and-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
     runs-on: self-hosted
     environment: production
     env:
@@ -140,6 +172,16 @@ jobs:
       OVERLAY: production
     
     steps:
+      - name: 📋 Deployment Info
+        run: |
+          echo "🎯 Deploying to: PRODUCTION"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "📦 Commit: ${{ github.sha }}"
+          echo "🔄 Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "👤 Triggered by: ${{ github.actor }}"
+          fi
+
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
