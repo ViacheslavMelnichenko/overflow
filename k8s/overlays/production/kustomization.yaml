@@ -10,10 +10,10 @@ resources:
 # Image configuration - will be updated by CI/CD
 images:
   - name: ghcr.io/placeholder/overflow-questions
-    newName: ghcr.io/placeholder/overflow-questions
+    newName: ghcr.io/GITHUB_USERNAME/overflow-questions
     newTag: latest
   - name: ghcr.io/placeholder/overflow-search
-    newName: ghcr.io/placeholder/overflow-search
+    newName: ghcr.io/GITHUB_USERNAME/overflow-search
     newTag: latest
 
 # ConfigMap for non-sensitive configuration
