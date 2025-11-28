@@ -10,13 +10,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Ensure all configuration is loaded from environment variables
 builder.Configuration.AddEnvironmentVariables();
 
+// Configure Keycloak from appsettings
+builder.ConfigureKeycloakFromSettings();
+
 // Add services to the container.
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
-//builder.Services.AddScoped<TagService>();v
+//builder.Services.AddScoped<TagService>();
 builder.AddKeyCloakAuthentication();
 //builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 

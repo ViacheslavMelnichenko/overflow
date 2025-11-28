@@ -12,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Ensure all configuration is loaded from environment variables
 builder.Configuration.AddEnvironmentVariables();
 
+// Configure Keycloak from appsettings (for future authentication)
+builder.ConfigureKeycloakFromSettings();
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();

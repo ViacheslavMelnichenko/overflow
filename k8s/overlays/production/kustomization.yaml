@@ -22,12 +22,6 @@ configMapGenerator:
     behavior: create
     literals:
       - aspnetcore-environment=Production
-      - keycloak-url=http://keycloak.infra-production.svc.cluster.local:8080
-      - keycloak-realm=overflow
-      - keycloak-audience=overflow-api
-      - keycloak-service-name=overflow-production
-      - keycloak-valid-issuer-0=http://keycloak.infra-production.svc.cluster.local:8080/realms/overflow
-      - keycloak-valid-issuer-1=https://keycloak.helios/realms/overflow
 
 # Secret placeholder - will be created by CI/CD with actual values from Infisical
 # DO NOT put real secrets here - they come from GitHub Secrets

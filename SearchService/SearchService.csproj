@@ -8,12 +8,24 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
-        <PackageReference Include="Typesense" />
+        <PackageReference Include="Typesense"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Overflow.Contracts\Overflow.Contracts.csproj" />
-      <ProjectReference Include="..\Overflow.ServiceDefaults\Overflow.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\Overflow.Contracts\Overflow.Contracts.csproj"/>
+        <ProjectReference Include="..\Overflow.ServiceDefaults\Overflow.ServiceDefaults.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="appsettings.json" />
+      <None Include="appsettings.Production.json">
+        <DependentUpon>appsettings.json</DependentUpon>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Include="appsettings.Staging.json">
+        <DependentUpon>appsettings.json</DependentUpon>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

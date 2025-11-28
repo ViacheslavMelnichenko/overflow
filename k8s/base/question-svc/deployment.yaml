@@ -45,48 +45,6 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: rabbitmq-connection
-            # Keycloak configuration from ConfigMap
-            - name: KeycloakOptions__Url
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: keycloak-url
-            - name: KeycloakOptions__Realm
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: keycloak-realm
-            - name: KeycloakOptions__Audience
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: keycloak-audience
-            - name: KeycloakOptions__ServiceName
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: keycloak-service-name
-            - name: KeycloakOptions__ValidIssuers__0
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: keycloak-valid-issuer-0
-            - name: KeycloakOptions__ValidIssuers__1
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: keycloak-valid-issuer-1
-            # Keycloak client credentials from secrets (optional for future OAuth flows)
-            - name: KeycloakOptions__ClientId
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: keycloak-client-id
-            - name: KeycloakOptions__ClientSecret
-              valueFrom:
-                secretKeyRef:
-                  name: app-secrets
-                  key: keycloak-client-secret
           livenessProbe:
             httpGet:
               path: /alive
