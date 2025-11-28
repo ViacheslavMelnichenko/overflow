@@ -27,16 +27,13 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
-        working-directory: ./Overflow
+        run: dotnet restore Overflow.slnx
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
-        working-directory: ./Overflow
+        run: dotnet build Overflow.slnx --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal
-        working-directory: ./Overflow
+        run: dotnet test Overflow.slnx --no-build --configuration Release --verbosity normal
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -46,15 +43,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push QuestionService image
-        working-directory: ./Overflow/QuestionService
         run: |
-          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }} .
+          docker build -f QuestionService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }} .
           docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }}
 
       - name: Build and push SearchService image
-        working-directory: ./Overflow/SearchService
         run: |
-          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }} .
+          docker build -f SearchService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }} .
           docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }}
 
   deploy-staging:
@@ -72,7 +67,7 @@ jobs:
           kubectl config use-context default
 
       - name: Update kustomization with image tags
-        working-directory: ./Overflow/k8s/overlays/staging
+        working-directory: ./k8s/overlays/staging
         run: |
           # Update GitHub org placeholder
           sed -i "s/placeholder/${{ github.repository_owner }}/g" kustomization.yaml
@@ -85,7 +80,7 @@ jobs:
             ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }}
 
       - name: Update secrets from environment-specific GitHub Secrets
-        working-directory: ./Overflow/k8s/overlays/staging
+        working-directory: ./k8s/overlays/staging
         run: |
           # Replace placeholder secrets with actual values from environment-specific GitHub Secrets
           # No need for _STAGING suffix since we're using environment: staging
@@ -104,13 +99,13 @@ jobs:
           sed -i "s|keycloak-client-secret=.*|keycloak-client-secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}|g" kustomization.yaml
 
       - name: Preview generated manifests
-        working-directory: ./Overflow/k8s/overlays/staging
+        working-directory: ./k8s/overlays/staging
         run: |
           echo "=== Generated Kubernetes Manifests ==="
           kubectl kustomize . | head -n 100
 
       - name: Deploy to Staging with Kustomize
-        working-directory: ./Overflow/k8s/overlays/staging
+        working-directory: ./k8s/overlays/staging
         run: |
           kubectl apply -k .
 
@@ -154,7 +149,7 @@ jobs:
           kubectl config use-context default
 
       - name: Update kustomization with image tags
-        working-directory: ./Overflow/k8s/overlays/production
+        working-directory: ./k8s/overlays/production
         run: |
           # Update GitHub org placeholder
           sed -i "s/placeholder/${{ github.repository_owner }}/g" kustomization.yaml
@@ -167,7 +162,7 @@ jobs:
             ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }}
 
       - name: Update secrets from environment-specific GitHub Secrets
-        working-directory: ./Overflow/k8s/overlays/production
+        working-directory: ./k8s/overlays/production
         run: |
           # Replace placeholder secrets with actual values from environment-specific GitHub Secrets
           # No need for _PRODUCTION suffix since we're using environment: production
@@ -186,13 +181,13 @@ jobs:
           sed -i "s|keycloak-client-secret=.*|keycloak-client-secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}|g" kustomization.yaml
 
       - name: Preview generated manifests
-        working-directory: ./Overflow/k8s/overlays/production
+        working-directory: ./k8s/overlays/production
         run: |
           echo "=== Generated Kubernetes Manifests ==="
           kubectl kustomize . | head -n 100
 
       - name: Deploy to Production with Kustomize
-        working-directory: ./Overflow/k8s/overlays/production
+        working-directory: ./k8s/overlays/production
         run: |
           kubectl apply -k .
 
