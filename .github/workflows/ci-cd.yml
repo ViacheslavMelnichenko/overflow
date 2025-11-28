@@ -1,4 +1,4 @@
-﻿name: CI/CD Pipeline
+﻿﻿name: CI/CD Pipeline
 
 on:
   push:
@@ -9,6 +9,11 @@ on:
     branches:
       - development
       - main
+
+# Add permissions for GITHUB_TOKEN to push to GitHub Container Registry
+permissions:
+  contents: read
+  packages: write
 
 env:
   DOCKER_REGISTRY: ghcr.io

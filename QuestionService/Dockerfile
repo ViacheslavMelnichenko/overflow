@@ -3,12 +3,12 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy solution and project files
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
 COPY ["QuestionService/QuestionService.csproj", "QuestionService/"]
 COPY ["Overflow.Common/Overflow.Common.csproj", "Overflow.Common/"]
 COPY ["Overflow.ServiceDefaults/Overflow.ServiceDefaults.csproj", "Overflow.ServiceDefaults/"]
 COPY ["Overflow.Contracts/Overflow.Contracts.csproj", "Overflow.Contracts/"]
-COPY ["Directory.Build.props", "./"]
-COPY ["Directory.Packages.props", "./"]
 
 # Restore dependencies
 RUN dotnet restore "QuestionService/QuestionService.csproj"
