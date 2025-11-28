@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+﻿﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: question-svc
@@ -89,7 +89,7 @@ spec:
                   key: keycloak-client-secret
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /alive
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -97,7 +97,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /health
               port: http
             initialDelaySeconds: 5
             periodSeconds: 5
