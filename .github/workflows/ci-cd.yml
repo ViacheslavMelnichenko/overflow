@@ -66,6 +66,8 @@ jobs:
     if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     runs-on: self-hosted  # Runs on helios
     environment: staging  # Uses staging environment secrets
+    env:
+      KUBECONFIG: /home/slava/.kube/config  # Use runner's kubeconfig
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,12 +76,11 @@ jobs:
         id: repo_owner
         run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Set up kubectl context
+      - name: Verify kubectl access
         run: |
-          mkdir -p $HOME/.kube
-          # Use kubeconfig from home directory (should be set up on helios beforehand)
-          export KUBECONFIG=$HOME/.kube/config
-          kubectl config use-context default || echo "Using default context"
+          echo "Using kubeconfig: $KUBECONFIG"
+          kubectl config current-context || echo "Using default context"
+          kubectl get nodes
 
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/staging
@@ -155,6 +156,8 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: self-hosted  # Runs on helios
     environment: production  # Uses production environment secrets
+    env:
+      KUBECONFIG: /home/slava/.kube/config  # Use runner's kubeconfig
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -163,12 +166,11 @@ jobs:
         id: repo_owner
         run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Set up kubectl context
+      - name: Verify kubectl access
         run: |
-          mkdir -p $HOME/.kube
-          # Use kubeconfig from home directory (should be set up on helios beforehand)
-          export KUBECONFIG=$HOME/.kube/config
-          kubectl config use-context default || echo "Using default context"
+          echo "Using kubeconfig: $KUBECONFIG"
+          kubectl config current-context || echo "Using default context"
+          kubectl get nodes
 
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/production
