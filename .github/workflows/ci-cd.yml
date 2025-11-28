@@ -35,6 +35,10 @@ jobs:
       - name: Test
         run: dotnet test Overflow.slnx --no-build --configuration Release --verbosity normal
 
+      - name: Convert repository owner to lowercase
+        id: repo_owner
+        run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -44,13 +48,13 @@ jobs:
 
       - name: Build and push QuestionService image
         run: |
-          docker build -f QuestionService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }} .
-          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }}
+          docker build -f QuestionService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
 
       - name: Build and push SearchService image
         run: |
-          docker build -f SearchService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }} .
-          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }}
+          docker build -f SearchService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
 
   deploy-staging:
     needs: build-and-test
@@ -61,6 +65,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Convert repository owner to lowercase
+        id: repo_owner
+        run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Set up kubectl context
         run: |
           mkdir -p $HOME/.kube
@@ -69,15 +77,15 @@ jobs:
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/staging
         run: |
-          # Update GitHub org placeholder
-          sed -i "s/placeholder/${{ github.repository_owner }}/g" kustomization.yaml
+          # Update GitHub org placeholder (lowercase)
+          sed -i "s/placeholder/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
           
           # Update image tags
           kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions=${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
           
           kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
 
       - name: Update secrets from environment-specific GitHub Secrets
         working-directory: ./k8s/overlays/staging
@@ -143,6 +151,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Convert repository owner to lowercase
+        id: repo_owner
+        run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Set up kubectl context
         run: |
           mkdir -p $HOME/.kube
@@ -151,15 +163,15 @@ jobs:
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/production
         run: |
-          # Update GitHub org placeholder
-          sed -i "s/placeholder/${{ github.repository_owner }}/g" kustomization.yaml
+          # Update GitHub org placeholder (lowercase)
+          sed -i "s/placeholder/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
           
           # Update image tags
           kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions=${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-questions:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
           
           kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/overflow-search:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
 
       - name: Update secrets from environment-specific GitHub Secrets
         working-directory: ./k8s/overlays/production
