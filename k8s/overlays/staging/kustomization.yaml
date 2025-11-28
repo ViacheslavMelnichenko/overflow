@@ -46,3 +46,21 @@ replicas:
     count: 2
   - name: search-svc
     count: 2
+
+# Patch ingress hosts for staging
+patches:
+  - target:
+      kind: Ingress
+      name: question-svc
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api-staging.helios
+  - target:
+      kind: Ingress
+      name: search-svc
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api-staging.helios
+

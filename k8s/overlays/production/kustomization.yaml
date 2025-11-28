@@ -51,6 +51,23 @@ replicas:
 
 # Production-specific resource adjustments
 patches:
+  # Ingress host configuration for production
+  - target:
+      kind: Ingress
+      name: question-svc
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api.helios
+  - target:
+      kind: Ingress
+      name: search-svc
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api.helios
+  
+  # Resource adjustments for production
   - patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/memory
