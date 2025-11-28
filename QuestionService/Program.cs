@@ -16,10 +16,8 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
-//builder.Services.AddScoped<TagService>();
-// TODO: Enable when Keycloak DNS/hostname is configured properly
-//builder.AddKeyCloakAuthentication();
-
+//builder.Services.AddScoped<TagService>();v
+builder.AddKeyCloakAuthentication();
 //builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
 // await builder.UseWolverineWithRabbitMqAsync(opts =>

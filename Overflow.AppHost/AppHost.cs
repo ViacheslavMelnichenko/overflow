@@ -17,18 +17,6 @@ if (builder.Environment.IsDevelopment())
         .WithKeycloakOptions(builder.Configuration)
         .WaitFor(keycloak);
 }
-else
-{
-    // External Keycloak for staging/production
-    var keycloakUrl = builder.Configuration["KeycloakOptions:Url"] 
-        ?? throw new InvalidOperationException("Keycloak URL is not configured.");
-    var keycloak = builder.AddConnectionString("keycloak", keycloakUrl);
-    
-    // Question Service configuration
-    var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
-        .WithReference(keycloak)
-        .WithKeycloakOptions(builder.Configuration);
-}
 
 
 // var postgres = builder.AddPostgres("postgres", port: 5432)

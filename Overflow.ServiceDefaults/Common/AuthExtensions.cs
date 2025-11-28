@@ -20,6 +20,9 @@ public static class AuthExtensions
             .BuildServiceProvider()
             .GetRequiredService<Microsoft.Extensions.Options.IOptions<KeycloakOptions>>().Value;
 
+        // Construct the authority URL from Url and Realm
+        var authority = $"{keycloakOptions.Url}/realms/{keycloakOptions.Realm}";
+
         builder.Services
             .AddAuthentication()
             .AddKeycloakJwtBearer(
@@ -27,6 +30,7 @@ public static class AuthExtensions
                 keycloakOptions.Realm,
                 options =>
                 {
+                    options.Authority = authority;
                     options.RequireHttpsMetadata = false;
                     options.Audience = keycloakOptions.Audience;
                     options.TokenValidationParameters = new TokenValidationParameters

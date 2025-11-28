@@ -23,11 +23,11 @@ configMapGenerator:
     literals:
       - aspnetcore-environment=Staging
       - keycloak-url=http://keycloak.infra-production.svc.cluster.local:8080
-      - keycloak-realm=overflow
-      - keycloak-audience=overflow-api
+      - keycloak-realm=overflow-staging
+      - keycloak-audience=overflow-staging
       - keycloak-service-name=overflow-staging
-      - keycloak-valid-issuer-0=http://keycloak.infra-production.svc.cluster.local:8080/realms/overflow
-      - keycloak-valid-issuer-1=https://keycloak.helios/realms/overflow
+      - keycloak-valid-issuer-0=http://keycloak.helios/realms/overflow-staging
+      - keycloak-valid-issuer-1=http://keycloak.infra-production.svc.cluster.local:8080/realms/overflow-staging
 
 # Secret placeholder - will be created by CI/CD with actual values from GitHub Secrets
 # DO NOT put real secrets here - they come from GitHub Secrets
