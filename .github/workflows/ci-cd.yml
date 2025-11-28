@@ -61,124 +61,139 @@ jobs:
           docker build -f SearchService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }} .
           docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
 
-  deploy:
+  # ============================================================================
+  # STAGING DEPLOYMENT (development branch → apps-staging namespace)
+  # ============================================================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
     needs: build-and-test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/development' || github.ref == 'refs/heads/main')
-    runs-on: self-hosted  # Runs on helios
-    strategy:
-      matrix:
-        include:
-          - environment: staging
-            branch: development
-            namespace: apps-staging
-            overlay: staging
-          - environment: production
-            branch: main
-            namespace: apps-production
-            overlay: production
-    # Only run for the matching branch
-    environment: ${{ matrix.environment }}
+    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
+    runs-on: self-hosted
+    environment: staging
     env:
       KUBECONFIG: /home/github-runner/.kube/config
+      NAMESPACE: apps-staging
+      OVERLAY: staging
+    
     steps:
-      - name: Check branch match
-        if: github.ref != format('refs/heads/{0}', matrix.branch)
-        run: |
-          echo "Skipping ${{ matrix.environment }} deployment - wrong branch"
-          exit 0
-
-      - name: Checkout code
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Convert repository owner to lowercase
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
-        id: repo_owner
+      - name: 🔧 Setup environment
+        id: setup
         run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
-      - name: Verify kubectl access
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
+      - name: ✅ Verify Kubernetes access
         run: |
-          echo "Using kubeconfig: $KUBECONFIG"
           kubectl config current-context || echo "Using default context"
           kubectl get nodes
 
-      - name: Update kustomization with image tags
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
-        working-directory: ./k8s/overlays/${{ matrix.overlay }}
+      - name: 🏷️ Update image tags
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
         run: |
-          # Update GitHub username placeholder in newName fields only
-          sed -i "s/GITHUB_USERNAME/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
-          
-          # Update image tags directly in kustomization.yaml
+          sed -i "s/GITHUB_USERNAME/${{ steps.setup.outputs.owner_lc }}/g" kustomization.yaml
           sed -i "s|newTag: latest|newTag: ${{ env.IMAGE_TAG }}|g" kustomization.yaml
-          
-          # Verify the changes
-          echo "=== Updated kustomization.yaml ==="
-          grep -A 5 "images:" kustomization.yaml || cat kustomization.yaml
 
-      - name: Update secrets from environment-specific GitHub Secrets
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
-        working-directory: ./k8s/overlays/${{ matrix.overlay }}
+      - name: 🔐 Inject secrets
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
         run: |
-          # Replace placeholder secrets with actual values from environment-specific GitHub Secrets
           sed -i "s|postgres-connection=.*|postgres-connection=${{ secrets.POSTGRES_QUESTIONS_DB_CONNECTION_STRING }}|g" kustomization.yaml
           sed -i "s|rabbitmq-connection=.*|rabbitmq-connection=${{ secrets.RABBIT_MQ_AMQP_CONNECTION_STRING }}|g" kustomization.yaml
           sed -i "s|typesense-api-key=.*|typesense-api-key=${{ secrets.TYPESENSE_API_KEY }}|g" kustomization.yaml
           sed -i "s|keycloak-client-id=.*|keycloak-client-id=${{ secrets.KEYCLOAK_CLIENT_ID }}|g" kustomization.yaml
           sed -i "s|keycloak-client-secret=.*|keycloak-client-secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}|g" kustomization.yaml
 
-      - name: Preview generated manifests
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
-        working-directory: ./k8s/overlays/${{ matrix.overlay }}
-        run: |
-          echo "=== Generated Kubernetes Manifests ==="
-          kubectl kustomize . | head -n 100
+      - name: 👀 Preview manifests
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
+        run: kubectl kustomize . | head -n 100
 
-      - name: Deploy to ${{ matrix.environment }} with Kustomize
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
-        working-directory: ./k8s/overlays/${{ matrix.overlay }}
-        run: |
-          kubectl apply -k .
+      - name: 🚀 Deploy to Kubernetes
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
+        run: kubectl apply -k .
 
-      - name: Wait for rollout to complete
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
+      - name: ⏳ Wait for rollout
         run: |
-          kubectl rollout status deployment/question-svc -n ${{ matrix.namespace }} --timeout=5m || echo "Question service rollout timeout"
-          kubectl rollout status deployment/search-svc -n ${{ matrix.namespace }} --timeout=5m || echo "Search service rollout timeout"
+          kubectl rollout status deployment/question-svc -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/search-svc -n ${{ env.NAMESPACE }} --timeout=5m
 
-      - name: Validate deployment
-        if: github.ref == format('refs/heads/{0}', matrix.branch)
+      - name: 📊 Deployment status
         run: |
-          echo "=== Pods in ${{ matrix.namespace }} ==="
-          kubectl get pods -n ${{ matrix.namespace }}
-          
-          echo "=== Services in ${{ matrix.namespace }} ==="
-          kubectl get svc -n ${{ matrix.namespace }}
-          
-          echo "=== ConfigMaps in ${{ matrix.namespace }} ==="
-          kubectl get configmaps -n ${{ matrix.namespace }}
-          
-          echo "=== Secrets in ${{ matrix.namespace }} ==="
-          kubectl get secrets -n ${{ matrix.namespace }}
-          
-          echo "=== Recent logs from question-svc ==="
-          kubectl logs -n ${{ matrix.namespace }} -l app=question-svc --tail=30 --prefix=true || echo "No logs yet"
-          
-          echo "=== Recent logs from search-svc ==="
-          kubectl logs -n ${{ matrix.namespace }} -l app=search-svc --tail=30 --prefix=true || echo "No logs yet"
+          echo "=== Pods ==="
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          echo "=== Logs from question-svc ==="
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=question-svc --tail=30 --prefix=true || true
+          echo "=== Logs from search-svc ==="
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=search-svc --tail=30 --prefix=true || true
 
-      - name: Smoke tests
-        if: github.ref == format('refs/heads/{0}', matrix.branch) && matrix.environment == 'production'
+  # ============================================================================
+  # PRODUCTION DEPLOYMENT (main branch → apps-production namespace)
+  # ============================================================================
+  deploy-production:
+    name: 🏭 Deploy to Production
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: self-hosted
+    environment: production
+    env:
+      KUBECONFIG: /home/github-runner/.kube/config
+      NAMESPACE: apps-production
+      OVERLAY: production
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup environment
+        id: setup
+        run: echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: ✅ Verify Kubernetes access
         run: |
-          echo "Waiting for services to be fully ready..."
+          kubectl config current-context || echo "Using default context"
+          kubectl get nodes
+
+      - name: 🏷️ Update image tags
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
+        run: |
+          sed -i "s/GITHUB_USERNAME/${{ steps.setup.outputs.owner_lc }}/g" kustomization.yaml
+          sed -i "s|newTag: latest|newTag: ${{ env.IMAGE_TAG }}|g" kustomization.yaml
+
+      - name: 🔐 Inject secrets
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
+        run: |
+          sed -i "s|postgres-connection=.*|postgres-connection=${{ secrets.POSTGRES_QUESTIONS_DB_CONNECTION_STRING }}|g" kustomization.yaml
+          sed -i "s|rabbitmq-connection=.*|rabbitmq-connection=${{ secrets.RABBIT_MQ_AMQP_CONNECTION_STRING }}|g" kustomization.yaml
+          sed -i "s|typesense-api-key=.*|typesense-api-key=${{ secrets.TYPESENSE_API_KEY }}|g" kustomization.yaml
+          sed -i "s|keycloak-client-id=.*|keycloak-client-id=${{ secrets.KEYCLOAK_CLIENT_ID }}|g" kustomization.yaml
+          sed -i "s|keycloak-client-secret=.*|keycloak-client-secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}|g" kustomization.yaml
+
+      - name: 👀 Preview manifests
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
+        run: kubectl kustomize . | head -n 100
+
+      - name: 🚀 Deploy to Kubernetes
+        working-directory: ./k8s/overlays/${{ env.OVERLAY }}
+        run: kubectl apply -k .
+
+      - name: ⏳ Wait for rollout
+        run: |
+          kubectl rollout status deployment/question-svc -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/search-svc -n ${{ env.NAMESPACE }} --timeout=5m
+
+      - name: 📊 Deployment status
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          echo "=== Logs from question-svc ==="
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=question-svc --tail=30 --prefix=true || true
+          echo "=== Logs from search-svc ==="
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=search-svc --tail=30 --prefix=true || true
+
+      - name: 🧪 Smoke tests
+        run: |
           sleep 10
-          
-          echo "=== Testing question-svc health endpoint ==="
-          kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ matrix.namespace }} -- \
-            curl -f -m 5 http://question-svc:8080/health || echo "Health check failed or endpoint not available"
-          
-          echo "=== Testing search-svc health endpoint ==="
-          kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ matrix.namespace }} -- \
-            curl -f -m 5 http://search-svc:8080/health || echo "Health check failed or endpoint not available"
+          kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ env.NAMESPACE }} -- \
+            curl -f -m 5 http://question-svc:8080/health || echo "⚠️ Health check failed"
+          kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ env.NAMESPACE }} -- \
+            curl -f -m 5 http://search-svc:8080/health || echo "⚠️ Health check failed"
 
