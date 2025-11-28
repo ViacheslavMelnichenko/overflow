@@ -67,7 +67,7 @@ jobs:
     runs-on: self-hosted  # Runs on helios
     environment: staging  # Uses staging environment secrets
     env:
-      KUBECONFIG: /home/slava/.kube/config  # Use runner's kubeconfig
+      KUBECONFIG: /home/github-runner/.kube/config  # Use runner's kubeconfig
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -157,7 +157,7 @@ jobs:
     runs-on: self-hosted  # Runs on helios
     environment: production  # Uses production environment secrets
     env:
-      KUBECONFIG: /home/slava/.kube/config  # Use runner's kubeconfig
+      KUBECONFIG: /home/github-runner/.kube/config  # Use runner's kubeconfig
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
