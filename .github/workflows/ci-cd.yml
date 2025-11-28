@@ -85,8 +85,8 @@ jobs:
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/staging
         run: |
-          # Update GitHub org placeholder (lowercase)
-          sed -i "s/placeholder/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
+          # Update GitHub username placeholder in newName fields only
+          sed -i "s/GITHUB_USERNAME/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
           
           # Update image tags directly in kustomization.yaml
           # Replace all 'newTag: latest' with the actual commit SHA
@@ -94,7 +94,7 @@ jobs:
           
           # Verify the changes
           echo "=== Updated kustomization.yaml ==="
-          grep -A 3 "images:" kustomization.yaml || cat kustomization.yaml
+          grep -A 5 "images:" kustomization.yaml || cat kustomization.yaml
 
       - name: Update secrets from environment-specific GitHub Secrets
         working-directory: ./k8s/overlays/staging
@@ -175,8 +175,8 @@ jobs:
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/production
         run: |
-          # Update GitHub org placeholder (lowercase)
-          sed -i "s/placeholder/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
+          # Update GitHub username placeholder in newName fields only
+          sed -i "s/GITHUB_USERNAME/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
           
           # Update image tags directly in kustomization.yaml
           # Replace all 'newTag: latest' with the actual commit SHA
@@ -184,7 +184,7 @@ jobs:
           
           # Verify the changes
           echo "=== Updated kustomization.yaml ==="
-          grep -A 3 "images:" kustomization.yaml || cat kustomization.yaml
+          grep -A 5 "images:" kustomization.yaml || cat kustomization.yaml
 
       - name: Update secrets from environment-specific GitHub Secrets
         working-directory: ./k8s/overlays/production
