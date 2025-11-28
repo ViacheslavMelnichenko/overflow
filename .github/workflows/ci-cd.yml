@@ -87,12 +87,13 @@ jobs:
           # Update GitHub org placeholder (lowercase)
           sed -i "s/placeholder/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
           
-          # Update image tags
-          kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
+          # Update image tags directly in kustomization.yaml
+          # Replace all 'newTag: latest' with the actual commit SHA
+          sed -i "s|newTag: latest|newTag: ${{ env.IMAGE_TAG }}|g" kustomization.yaml
           
-          kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
+          # Verify the changes
+          echo "=== Updated kustomization.yaml ==="
+          grep -A 3 "images:" kustomization.yaml || cat kustomization.yaml
 
       - name: Update secrets from environment-specific GitHub Secrets
         working-directory: ./k8s/overlays/staging
@@ -175,12 +176,13 @@ jobs:
           # Update GitHub org placeholder (lowercase)
           sed -i "s/placeholder/${{ steps.repo_owner.outputs.owner_lc }}/g" kustomization.yaml
           
-          # Update image tags
-          kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
+          # Update image tags directly in kustomization.yaml
+          # Replace all 'newTag: latest' with the actual commit SHA
+          sed -i "s|newTag: latest|newTag: ${{ env.IMAGE_TAG }}|g" kustomization.yaml
           
-          kustomize edit set image \
-            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search=${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-search:${{ env.IMAGE_TAG }}
+          # Verify the changes
+          echo "=== Updated kustomization.yaml ==="
+          grep -A 3 "images:" kustomization.yaml || cat kustomization.yaml
 
       - name: Update secrets from environment-specific GitHub Secrets
         working-directory: ./k8s/overlays/production
