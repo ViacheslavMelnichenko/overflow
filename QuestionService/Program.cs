@@ -17,7 +17,8 @@ builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
 //builder.Services.AddScoped<TagService>();
-builder.AddKeyCloakAuthentication();
+// TODO: Enable when Keycloak DNS/hostname is configured properly
+//builder.AddKeyCloakAuthentication();
 
 //builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
@@ -30,10 +31,11 @@ builder.AddKeyCloakAuthentication();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// if (app.Environment.IsDevelopment())
+// {
+//     app.MapOpenApi();
+// }
+app.MapOpenApi();
 
 app.MapControllers();
 
