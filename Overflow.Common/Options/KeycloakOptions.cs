@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿﻿using System.ComponentModel.DataAnnotations;
 
 namespace Overflow.Common.Options;
 
@@ -17,4 +17,9 @@ public class KeycloakOptions
 
     [Required]
     public required List<string> ValidIssuers { get; set; }
+    
+    // Optional: Client credentials for OAuth flows
+    public string? ClientId { get; set; }
+    
+    public string? ClientSecret { get; set; }
 }

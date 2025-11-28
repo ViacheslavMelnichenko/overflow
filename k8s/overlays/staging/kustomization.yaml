@@ -1,0 +1,56 @@
+﻿apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: apps-staging
+
+resources:
+  - ../../base/question-svc
+  - ../../base/search-svc
+
+# Image configuration - will be updated by CI/CD
+images:
+  - name: ghcr.io/placeholder/overflow-questions
+    newName: ghcr.io/placeholder/overflow-questions
+    newTag: latest
+  - name: ghcr.io/placeholder/overflow-search
+    newName: ghcr.io/placeholder/overflow-search
+    newTag: latest
+
+# ConfigMap for non-sensitive configuration
+configMapGenerator:
+  - name: app-config
+    behavior: create
+    literals:
+      - aspnetcore-environment=Staging
+      - keycloak-url=http://keycloak.infra-production.svc.cluster.local:8080
+      - keycloak-realm=overflow
+      - keycloak-audience=overflow-api
+      - keycloak-service-name=overflow-staging
+      - keycloak-valid-issuer-0=http://keycloak.infra-production.svc.cluster.local:8080/realms/overflow
+      - keycloak-valid-issuer-1=https://keycloak.helios/realms/overflow
+
+# Secret placeholder - will be created by CI/CD with actual values from GitHub Secrets
+# DO NOT put real secrets here - they come from GitHub Secrets
+secretGenerator:
+  - name: app-secrets
+    behavior: create
+    literals:
+      - postgres-connection=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - rabbitmq-connection=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - typesense-connection=http://typesense.infra-staging.svc.cluster.local:8108
+      - typesense-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - keycloak-client-id=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - keycloak-client-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+
+# Common labels for staging environment
+labels:
+  - pairs:
+      environment: staging
+      managed-by: kustomize
+
+# Replica counts for staging
+replicas:
+  - name: question-svc
+    count: 2
+  - name: search-svc
+    count: 2

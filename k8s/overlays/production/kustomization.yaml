@@ -1,0 +1,91 @@
+﻿apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: apps-production
+
+resources:
+  - ../../base/question-svc
+  - ../../base/search-svc
+
+# Image configuration - will be updated by CI/CD
+images:
+  - name: ghcr.io/placeholder/overflow-questions
+    newName: ghcr.io/placeholder/overflow-questions
+    newTag: latest
+  - name: ghcr.io/placeholder/overflow-search
+    newName: ghcr.io/placeholder/overflow-search
+    newTag: latest
+
+# ConfigMap for non-sensitive configuration
+configMapGenerator:
+  - name: app-config
+    behavior: create
+    literals:
+      - aspnetcore-environment=Production
+      - keycloak-url=http://keycloak.infra-production.svc.cluster.local:8080
+      - keycloak-realm=overflow
+      - keycloak-audience=overflow-api
+      - keycloak-service-name=overflow-production
+      - keycloak-valid-issuer-0=http://keycloak.infra-production.svc.cluster.local:8080/realms/overflow
+      - keycloak-valid-issuer-1=https://keycloak.helios/realms/overflow
+
+# Secret placeholder - will be created by CI/CD with actual values from Infisical
+# DO NOT put real secrets here - they come from GitHub Secrets
+secretGenerator:
+  - name: app-secrets
+    behavior: create
+    literals:
+      - postgres-connection=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - rabbitmq-connection=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - typesense-connection=http://typesense.infra-production.svc.cluster.local:8108
+      - typesense-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - keycloak-client-id=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - keycloak-client-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+
+# Common labels for production environment
+labels:
+  - pairs:
+      environment: production
+      managed-by: kustomize
+
+# Replica counts for production (higher for availability)
+replicas:
+  - name: question-svc
+    count: 3
+  - name: search-svc
+    count: 3
+
+# Production-specific resource adjustments
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 512Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 500m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 1000m
+    target:
+      kind: Deployment
+      name: question-svc
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 512Mi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 1Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 500m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 1000m
+    target:
+      kind: Deployment
+      name: search-svc
