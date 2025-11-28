@@ -77,7 +77,9 @@ jobs:
       - name: Set up kubectl context
         run: |
           mkdir -p $HOME/.kube
-          kubectl config use-context default
+          # Use kubeconfig from home directory (should be set up on helios beforehand)
+          export KUBECONFIG=$HOME/.kube/config
+          kubectl config use-context default || echo "Using default context"
 
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/staging
@@ -163,7 +165,9 @@ jobs:
       - name: Set up kubectl context
         run: |
           mkdir -p $HOME/.kube
-          kubectl config use-context default
+          # Use kubeconfig from home directory (should be set up on helios beforehand)
+          export KUBECONFIG=$HOME/.kube/config
+          kubectl config use-context default || echo "Using default context"
 
       - name: Update kustomization with image tags
         working-directory: ./k8s/overlays/production
