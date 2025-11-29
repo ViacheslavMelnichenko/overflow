@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Overflow.ServiceDefaults;
@@ -54,6 +55,15 @@ public static class Extensions
         });
 
         builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource
+                .AddService(
+                    serviceName: builder.Environment.ApplicationName,
+                    serviceVersion: typeof(Extensions).Assembly.GetName().Version?.ToString() ?? "1.0.0")
+                .AddAttributes(new Dictionary<string, object>
+                {
+                    ["deployment.environment"] = builder.Environment.EnvironmentName,
+                    ["host.name"] = Environment.MachineName
+                }))
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
@@ -63,15 +73,43 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddAspNetCoreInstrumentation(tracing =>
+                    .AddAspNetCoreInstrumentation(options =>
+                    {
+                        options.RecordException = true;
+                        options.EnrichWithHttpRequest = (activity, httpRequest) =>
+                        {
+                            activity.SetTag("http.client_ip", httpRequest.HttpContext.Connection.RemoteIpAddress);
+                            activity.SetTag("http.request_content_length", httpRequest.ContentLength);
+                        };
+                        options.EnrichWithHttpResponse = (activity, httpResponse) =>
+                        {
+                            activity.SetTag("http.response_content_length", httpResponse.ContentLength);
+                        };
                         // Exclude health check requests from tracing
-                        tracing.Filter = context =>
+                        options.Filter = context =>
                             !context.Request.Path.StartsWithSegments(HealthEndpointPath)
-                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
-                    )
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                    //.AddGrpcClientInstrumentation()
-                    .AddHttpClientInstrumentation();
+                            && !context.Request.Path.StartsWithSegments(AlivenessEndpointPath);
+                    })
+                    .AddHttpClientInstrumentation(options =>
+                    {
+                        options.RecordException = true;
+                        options.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) =>
+                        {
+                            activity.SetTag("http.request.method", httpRequestMessage.Method.Method);
+                        };
+                        options.EnrichWithHttpResponseMessage = (activity, httpResponseMessage) =>
+                        {
+                            activity.SetTag("http.response.status_code", (int)httpResponseMessage.StatusCode);
+                        };
+                    })
+                    .AddEntityFrameworkCoreInstrumentation(options =>
+                    {
+                        options.EnrichWithIDbCommand = (activity, command) =>
+                        {
+                            activity.SetTag("db.statement", command.CommandText);
+                            activity.SetTag("db.operation", command.CommandType.ToString());
+                        };
+                    });
             });
 
         builder.AddOpenTelemetryExporters();
@@ -112,7 +150,7 @@ public static class Extensions
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
         // Map health checks in all environments for Kubernetes readiness/liveness probes
-        
+
         // All health checks must pass for app to be considered ready to accept traffic after starting
         app.MapHealthChecks(HealthEndpointPath);
 

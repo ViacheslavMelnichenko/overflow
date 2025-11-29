@@ -45,6 +45,13 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: rabbitmq-connection
+            # OpenTelemetry configuration
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo.monitoring.svc.cluster.local:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "question-service"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "deployment.environment=$(ASPNETCORE_ENVIRONMENT)"
           livenessProbe:
             httpGet:
               path: /alive

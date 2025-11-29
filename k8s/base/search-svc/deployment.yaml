@@ -50,6 +50,13 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: typesense-api-key
+            # OpenTelemetry configuration
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://tempo.monitoring.svc.cluster.local:4318"
+            - name: OTEL_SERVICE_NAME
+              value: "search-service"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "deployment.environment=$(ASPNETCORE_ENVIRONMENT)"
           livenessProbe:
             httpGet:
               path: /alive
