@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: INGRESS_HOST  # Will be replaced by overlay (api.helios or api-staging.helios)
+    - host: INGRESS_HOST  # Will be replaced by overlay (overflow-api.helios or overflow-api-staging.helios)
       http:
         paths:
           - path: /api/search

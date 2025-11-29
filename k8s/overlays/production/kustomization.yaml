@@ -58,14 +58,14 @@ patches:
     patch: |-
       - op: replace
         path: /spec/rules/0/host
-        value: api.helios
+        value: overflow-api.helios
   - target:
       kind: Ingress
       name: search-svc
     patch: |-
       - op: replace
         path: /spec/rules/0/host
-        value: api.helios
+        value: overflow-api.helios
   
   # Resource adjustments for production
   - patch: |-
