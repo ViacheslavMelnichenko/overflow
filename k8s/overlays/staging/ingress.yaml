@@ -4,16 +4,16 @@ metadata:
   name: question-svc-ingress
   namespace: apps-staging
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
     - host: overflow-api-staging.helios
       http:
         paths:
-          - path: /questions(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /questions
+            pathType: Prefix
             backend:
               service:
                 name: question-svc
@@ -26,16 +26,16 @@ metadata:
   name: search-svc-ingress
   namespace: apps-staging
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
     - host: overflow-api-staging.helios
       http:
         paths:
-          - path: /search(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /search
+            pathType: Prefix
             backend:
               service:
                 name: search-svc
