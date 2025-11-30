@@ -15,6 +15,7 @@ builder.Configuration.AddEnvironmentVariables();
 // Configure Keycloak from appsettings (for future authentication)
 builder.ConfigureKeycloakFromSettings();
 
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
@@ -49,11 +50,10 @@ builder.AddServiceDefaults();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     app.MapOpenApi();
-// }
-app.MapOpenApi();
+if (!app.Environment.IsProduction())
+{
+    app.MapOpenApi();
+}
 
 app.MapDefaultEndpoints();
 //

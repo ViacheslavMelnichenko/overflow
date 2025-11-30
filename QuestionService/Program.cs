@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Overflow.ServiceDefaults;
 using Overflow.ServiceDefaults.Common;
 using QuestionService.Data;
@@ -7,52 +6,37 @@ using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ensure all configuration is loaded from environment variables
 builder.Configuration.AddEnvironmentVariables();
-
-// Configure Keycloak from appsettings
 builder.ConfigureKeycloakFromSettings();
 
-// Add services to the container.
-
+// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
-//builder.Services.AddScoped<TagService>();
+builder.Services.AddScoped<TagService>();
 builder.AddKeyCloakAuthentication();
 builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
-// await builder.UseWolverineWithRabbitMqAsync(opts =>
-// {
-//     opts.PublishAllMessages().ToRabbitExchange("questions");
-//     opts.ApplicationAssembly = typeof(Program).Assembly;
-// });
+builder.ConfigureWolverineWithRabbit(opts =>
+{
+    opts.PublishAllMessages().ToRabbitExchange("questions");
+    opts.ApplicationAssembly = typeof(Program).Assembly;
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     app.MapOpenApi();
-// }
-app.MapOpenApi();
+if (!app.Environment.IsProduction())
+{
+    app.MapOpenApi();
+}
 
 app.MapControllers();
 
 app.MapDefaultEndpoints();
 
-using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider;
-try
-{
-    var context = services.GetRequiredService<QuestionDbContext>();
-    await context.Database.MigrateAsync();
-}
-catch (Exception e)
-{
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(e, "An error occurred while migrating or seeding the database.");
-}
+// Apply database migrations
+await app.MigrateDatabaseAsync<QuestionDbContext>();
 
 app.Run();
