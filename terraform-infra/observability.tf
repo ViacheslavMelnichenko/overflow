@@ -124,7 +124,8 @@ resource "helm_release" "grafana" {
 
 resource "helm_release" "loki" {
   name       = "loki"
-  namespace  = "monitoring"
+  name       = "loki"
+  namespace  = kubernetes_namespace.monitoring.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "loki-stack"
   version    = "2.10.0"
@@ -162,7 +163,8 @@ resource "helm_release" "loki" {
 
 resource "helm_release" "tempo" {
   name       = "tempo"
-  namespace  = "monitoring"
+  name       = "tempo"
+  namespace  = kubernetes_namespace.monitoring.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "tempo"
   version    = "1.7.0"
@@ -195,7 +197,8 @@ resource "helm_release" "tempo" {
 
 resource "helm_release" "prometheus" {
   name       = "prometheus"
-  namespace  = "monitoring"
+  name       = "prometheus"
+  namespace  = kubernetes_namespace.monitoring.metadata[0].name
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "prometheus"
   version    = "25.8.0"
