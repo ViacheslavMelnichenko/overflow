@@ -5,12 +5,12 @@
 resource "helm_release" "grafana" {
   name       = "grafana"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
-  repository = "https://charts.bitnami.com/bitnami"
+  repository = "https://grafana.github.io/helm-charts"
   chart      = "grafana"
-  version    = "12.1.8"
+  version    = "10.2.0"
 
   set {
-    name  = "admin.password"
+    name  = "adminPassword"
     value = var.grafana_admin_password
   }
 
@@ -25,7 +25,7 @@ resource "helm_release" "grafana" {
   }
 
   set {
-    name  = "ingress.hostname"
+    name  = "ingress.hosts[0]"
     value = "overflow-grafana.helios"
   }
 
