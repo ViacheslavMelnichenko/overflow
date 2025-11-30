@@ -39,4 +39,11 @@ resource "helm_release" "keycloak" {
     name  = "postgres.auth.password"
     value = var.keycloak_postgres_password
   }
+
+  # Enable metrics endpoint
+  set {
+    name  = "keycloak.metrics.enabled"
+    value = "true"
+  }
 }
+
