@@ -290,7 +290,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
 
 resource "kubernetes_ingress_v1" "typesense_api_production" {
   metadata {
-    name      = "typesense-api-production"
+    name      = "typesense-dashboard-ui-production"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
   }
 
@@ -307,9 +307,9 @@ resource "kubernetes_ingress_v1" "typesense_api_production" {
 
           backend {
             service {
-              name = "typesense"
+              name = "typesense-dashboard"
               port {
-                number = 8108
+                number = 80
               }
             }
           }
@@ -318,7 +318,7 @@ resource "kubernetes_ingress_v1" "typesense_api_production" {
     }
   }
 
-  depends_on = [kubernetes_stateful_set.typesense_production]
+  depends_on = [kubernetes_deployment.typesense_dashboard_production]
 }
 
 resource "kubernetes_ingress_v1" "typesense_dashboard_production" {
