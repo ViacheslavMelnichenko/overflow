@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Overflow.ServiceDefaults;
 using Overflow.ServiceDefaults.Common;
 using QuestionService.Data;
+using QuestionService.Health;
 using QuestionService.Services;
 using Wolverine.RabbitMQ;
 
@@ -18,6 +20,11 @@ builder.Services.AddScoped<TagService>();
 builder.AddKeyCloakAuthentication();
 builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddDatabaseHealthCheck<DatabaseHealthCheck>()
+    .AddRabbitMqHealthCheck();
+
 builder.ConfigureWolverineWithRabbit(opts =>
 {
     opts.PublishAllMessages().ToRabbitExchange("questions");
@@ -32,9 +39,8 @@ if (!app.Environment.IsProduction())
     app.MapOpenApi();
 }
 
+app.MapStandardHealthCheckEndpoints("QuestionService");
 app.MapControllers();
-
-app.MapDefaultEndpoints();
 
 // Apply database migrations
 await app.MigrateDatabaseAsync<QuestionDbContext>();
