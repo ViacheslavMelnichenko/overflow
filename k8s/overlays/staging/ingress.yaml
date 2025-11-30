@@ -1,0 +1,44 @@
+﻿apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: question-svc-ingress
+  namespace: apps-staging
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: overflow-api-staging.helios
+      http:
+        paths:
+          - path: /questions(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: question-svc
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: search-svc-ingress
+  namespace: apps-staging
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: overflow-api-staging.helios
+      http:
+        paths:
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: search-svc
+                port:
+                  number: 8080
+
