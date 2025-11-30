@@ -15,6 +15,7 @@ builder.Configuration.AddEnvironmentVariables();
 // Configure Keycloak from appsettings (for future authentication)
 builder.ConfigureKeycloakFromSettings();
 
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
