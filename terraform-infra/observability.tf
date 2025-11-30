@@ -1,14 +1,13 @@
-﻿############################
+############################
 # GRAFANA (Visualization)
 ############################
 
 resource "helm_release" "grafana" {
-  name             = "grafana"
-  namespace        = "monitoring"
-  create_namespace = true
-  repository       = "https://charts.bitnami.com/bitnami"
-  chart            = "grafana"
-  version          = "12.1.8"
+  name       = "grafana"
+  namespace  = kubernetes_namespace.monitoring.metadata[0].name
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "grafana"
+  version    = "12.1.8"
 
   set {
     name  = "admin.password"
@@ -124,7 +123,6 @@ resource "helm_release" "grafana" {
 
 resource "helm_release" "loki" {
   name       = "loki"
-  name       = "loki"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
   chart      = "loki-stack"
@@ -143,7 +141,7 @@ resource "helm_release" "loki" {
 
   set {
     name  = "grafana.enabled"
-    value = "false"  # We already have Grafana
+    value = "false" # We already have Grafana
   }
 
   set {
@@ -162,7 +160,6 @@ resource "helm_release" "loki" {
 ############################
 
 resource "helm_release" "tempo" {
-  name       = "tempo"
   name       = "tempo"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
   repository = "https://grafana.github.io/helm-charts"
@@ -197,7 +194,6 @@ resource "helm_release" "tempo" {
 
 resource "helm_release" "prometheus" {
   name       = "prometheus"
-  name       = "prometheus"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "prometheus"
@@ -231,7 +227,7 @@ resource "helm_release" "prometheus" {
 
   set {
     name  = "alertmanager.enabled"
-    value = "false"  # Disable for now, can enable later
+    value = "false" # Disable for now, can enable later
   }
 }
 
