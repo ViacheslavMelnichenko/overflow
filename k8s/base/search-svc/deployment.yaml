@@ -35,7 +35,7 @@ spec:
                   name: app-config
                   key: aspnetcore-environment
             # Connection strings from secrets
-            - name: ConnectionStrings__rabbitmq
+            - name: ConnectionStrings__messaging
               valueFrom:
                 secretKeyRef:
                   name: app-secrets

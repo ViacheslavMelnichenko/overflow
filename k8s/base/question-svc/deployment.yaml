@@ -35,12 +35,12 @@ spec:
                   name: app-config
                   key: aspnetcore-environment
             # Connection strings from secrets
-            - name: ConnectionStrings__postgres
+            - name: ConnectionStrings__questionDb
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
                   key: postgres-connection
-            - name: ConnectionStrings__rabbitmq
+            - name: ConnectionStrings__messaging
               valueFrom:
                 secretKeyRef:
                   name: app-secrets

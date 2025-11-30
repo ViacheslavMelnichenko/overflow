@@ -4,19 +4,24 @@ namespace SearchService.Data;
 
 public static class SearchInitializer
 {
-    public static async Task EnsureIndexExists(ITypesenseClient client)
+    public static async Task EnsureIndexExists(ITypesenseClient client, ILogger logger)
     {
         const string schemaName = "questions";
         
         try
         {
             await client.RetrieveCollection(schemaName);
-            Console.WriteLine($"Collection {schemaName} has been created already.");
+            logger.LogInformation("✅ Collection '{SchemaName}' already exists", schemaName);
             return;
         }
         catch (TypesenseApiNotFoundException)
         {
-            Console.WriteLine($"Collection {schemaName} has not been created yet.");
+            logger.LogInformation("📝 Collection '{SchemaName}' not found, creating it now...", schemaName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "⚠️ Error checking collection '{SchemaName}': {Message}", schemaName, ex.Message);
+            throw;
         }
 
         var schema = new Schema(schemaName, new List<Field>
@@ -33,7 +38,15 @@ public static class SearchInitializer
             DefaultSortingField = "createdAt"
         };
         
-        await client.CreateCollection(schema);
-        Console.WriteLine($"Collection {schemaName} has been created.");
+        try
+        {
+            await client.CreateCollection(schema);
+            logger.LogInformation("✅ Collection '{SchemaName}' created successfully", schemaName);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "❌ Failed to create collection '{SchemaName}': {Message}", schemaName, ex.Message);
+            throw;
+        }
     }
 }

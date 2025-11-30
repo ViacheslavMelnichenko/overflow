@@ -50,11 +50,10 @@ builder.AddServiceDefaults();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     app.MapOpenApi();
-// }
-app.MapOpenApi();
+if (!app.Environment.IsProduction())
+{
+    app.MapOpenApi();
+}
 
 app.MapDefaultEndpoints();
 //
