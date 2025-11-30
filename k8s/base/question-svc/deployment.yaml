@@ -40,7 +40,7 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: postgres-connection
-            - name: ConnectionStrings__rabbitmq
+            - name: ConnectionStrings__messaging
               valueFrom:
                 secretKeyRef:
                   name: app-secrets

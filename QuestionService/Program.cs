@@ -19,15 +19,15 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 builder.Services.AddMemoryCache();
-//builder.Services.AddScoped<TagService>();
+builder.Services.AddScoped<TagService>();
 builder.AddKeyCloakAuthentication();
 builder.AddNpgsqlDbContext<QuestionDbContext>("questionDb");
 
-// await builder.UseWolverineWithRabbitMqAsync(opts =>
-// {
-//     opts.PublishAllMessages().ToRabbitExchange("questions");
-//     opts.ApplicationAssembly = typeof(Program).Assembly;
-// });
+await builder.UseWolverineWithRabbitMqAsync(opts =>
+{
+    opts.PublishAllMessages().ToRabbitExchange("questions");
+    opts.ApplicationAssembly = typeof(Program).Assembly;
+});
 
 var app = builder.Build();
 

@@ -3,6 +3,17 @@ using Overflow.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Database setup
+var postgres = builder.AddPostgres("postgres", port: 5432)
+    .WithDataVolume("postgres-data")
+    .WithPgAdmin();
+
+var questionDb = postgres.AddDatabase("questionDb");
+
+var rabbitmq = builder.AddRabbitMQ("messaging")
+    .WithDataVolume("rabbitmq-data")
+    .WithManagementPlugin();
+
 // Keycloak setup
 if (builder.Environment.IsDevelopment())
 {
@@ -12,17 +23,17 @@ if (builder.Environment.IsDevelopment())
         .WithDataVolume("keycloak-data");
     
     // Question Service configuration
-    var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
+    builder.AddProject<Projects.QuestionService>("question-svc")
         .WithReference(keycloak)
+        .WithReference(questionDb)
+        .WithReference(rabbitmq)
         .WithKeycloakOptions(builder.Configuration)
-        .WaitFor(keycloak);
+        .WaitFor(keycloak)
+        .WaitFor(questionDb)
+        .WaitFor(rabbitmq);
 }
 
-
-// var postgres = builder.AddPostgres("postgres", port: 5432)
-//     .WithDataVolume("postgres-data")
-//     .WithPgAdmin();
-//
+// Uncomment when ready to add search service
 // var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
 //
 // var typesense = builder.AddContainer("typesense", "typesense/typesense", "29.0")
@@ -31,22 +42,6 @@ if (builder.Environment.IsDevelopment())
 //     .WithHttpEndpoint(8108, 8108, name: "typesense");
 //
 // var typesenseContainer = typesense.GetEndpoint("typesense");
-//
-// var questionDb = postgres.AddDatabase("questionDb");
-//
-// var rabbitmq = builder.AddRabbitMQ("messaging")
-//     .WithDataVolume("rabbitmq-data")
-//     .WithManagementPlugin(port: 15672);
-//
-// var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
-//     .WithEnvironment("KEYCLOAK_HTTP", keycloakHttp)
-//     .WithEnvironment("KEYCLOAK_MANAGEMENT", keycloakMgmt)
-//     .WithReference(questionDb)
-//     .WithReference(rabbitmq)
-//     .WaitFor(keycloak)
-//     .WaitFor(questionDb)
-//     .WaitFor(rabbitmq);
-//
 //
 // var searchService = builder.AddProject<Projects.SearchService>("search-svc")
 //     .WithEnvironment("typesense-api-key", typesenseApiKey)
