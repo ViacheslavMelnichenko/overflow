@@ -6,6 +6,7 @@ namespace: apps-production
 resources:
   - ../../base/question-svc
   - ../../base/search-svc
+  - ingress.yaml
 
 # Image configuration - will be updated by CI/CD
 images:

@@ -88,38 +88,6 @@ resource "kubernetes_ingress_v1" "rabbitmq_staging" {
   depends_on = [helm_release.rabbitmq_staging]
 }
 
-resource "kubernetes_ingress_v1" "typesense_api_staging" {
-  metadata {
-    name      = "typesense-api-staging"
-    namespace = kubernetes_namespace.infra_staging.metadata[0].name
-  }
-
-  spec {
-    ingress_class_name = "nginx"
-
-    rule {
-      host = "overflow-typesense-staging.helios"
-
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = "typesense"
-              port {
-                number = 8108
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  depends_on = [kubernetes_stateful_set.typesense_staging]
-}
 
 resource "kubernetes_ingress_v1" "typesense_dashboard_staging" {
   metadata {
@@ -152,6 +120,46 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_staging" {
   }
 
   depends_on = [kubernetes_deployment.typesense_dashboard_staging]
+}
+
+# Typesense API endpoint for dashboard to connect to
+resource "kubernetes_ingress_v1" "typesense_api_endpoint_staging" {
+  metadata {
+    name      = "typesense-api-staging"
+    namespace = kubernetes_namespace.infra_staging.metadata[0].name
+    annotations = {
+      "nginx.ingress.kubernetes.io/cors-allow-origin"  = "*"
+      "nginx.ingress.kubernetes.io/cors-allow-methods" = "GET, POST, PUT, DELETE, OPTIONS"
+      "nginx.ingress.kubernetes.io/cors-allow-headers" = "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-TYPESENSE-API-KEY"
+      "nginx.ingress.kubernetes.io/enable-cors"        = "true"
+    }
+  }
+
+  spec {
+    ingress_class_name = "nginx"
+
+    rule {
+      host = "typesense-api-staging.helios"
+
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "typesense"
+              port {
+                number = 8108
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [kubernetes_stateful_set.typesense_staging]
 }
 
 ############################
@@ -288,9 +296,9 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
   depends_on = [helm_release.rabbitmq_production]
 }
 
-resource "kubernetes_ingress_v1" "typesense_api_production" {
+resource "kubernetes_ingress_v1" "typesense_dashboard_ui_production" {
   metadata {
-    name      = "typesense-dashboard-ui-production"
+    name      = "typesense-dashboard-ui"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
   }
 
@@ -352,6 +360,46 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_production" {
   }
 
   depends_on = [kubernetes_deployment.typesense_dashboard_production]
+}
+
+# Typesense API endpoint for dashboard to connect to
+resource "kubernetes_ingress_v1" "typesense_api_endpoint_production" {
+  metadata {
+    name      = "typesense-api-production"
+    namespace = kubernetes_namespace.infra_production.metadata[0].name
+    annotations = {
+      "nginx.ingress.kubernetes.io/cors-allow-origin"  = "*"
+      "nginx.ingress.kubernetes.io/cors-allow-methods" = "GET, POST, PUT, DELETE, OPTIONS"
+      "nginx.ingress.kubernetes.io/cors-allow-headers" = "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-TYPESENSE-API-KEY"
+      "nginx.ingress.kubernetes.io/enable-cors"        = "true"
+    }
+  }
+
+  spec {
+    ingress_class_name = "nginx"
+
+    rule {
+      host = "typesense-api.helios"
+
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "typesense"
+              port {
+                number = 8108
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [kubernetes_stateful_set.typesense_production]
 }
 
 ############################
