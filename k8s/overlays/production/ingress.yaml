@@ -1,11 +1,16 @@
-﻿apiVersion: networking.k8s.io/v1
+﻿# Production Application Ingress
+# Host: overflow-api.helios
+# Routes external traffic to Question and Search services
+
+---
+# Question Service: /questions -> question-svc:8080/questions
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: question-svc
+  name: question-svc-ingress
   namespace: apps-production
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
@@ -20,14 +25,14 @@ spec:
                 port:
                   number: 8080
 ---
+# Search Service: /search -> search-svc:8080/search
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: search-svc
+  name: search-svc-ingress
   namespace: apps-production
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:

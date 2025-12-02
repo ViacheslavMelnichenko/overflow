@@ -7,7 +7,7 @@ using Typesense;
 namespace SearchService.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class SearchController(ITypesenseClient client, ILogger<SearchController> logger) : ControllerBase
 {
     /// <summary>

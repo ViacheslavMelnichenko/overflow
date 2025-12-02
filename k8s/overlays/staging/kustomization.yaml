@@ -1,4 +1,7 @@
-﻿apiVersion: kustomize.config.k8s.io/v1beta1
+﻿# Staging Environment Kustomization
+# Namespace: apps-staging | Replicas: 2 per service
+
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 namespace: apps-staging
@@ -8,7 +11,7 @@ resources:
   - ../../base/search-svc
   - ingress.yaml
 
-# Image configuration - will be updated by CI/CD
+# Image tags updated by CI/CD
 images:
   - name: ghcr.io/placeholder/overflow-questions
     newName: ghcr.io/GITHUB_USERNAME/overflow-questions
@@ -17,15 +20,13 @@ images:
     newName: ghcr.io/GITHUB_USERNAME/overflow-search
     newTag: latest
 
-# ConfigMap for non-sensitive configuration
 configMapGenerator:
   - name: app-config
     behavior: create
     literals:
       - aspnetcore-environment=Staging
 
-# Secret placeholder - will be created by CI/CD with actual values from GitHub Secrets
-# DO NOT put real secrets here - they come from GitHub Secrets
+# Secrets replaced by CI/CD with actual values from GitHub Secrets
 secretGenerator:
   - name: app-secrets
     behavior: create
@@ -35,13 +36,11 @@ secretGenerator:
       - typesense-connection=http://typesense.infra-staging.svc.cluster.local:8108
       - typesense-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
 
-# Common labels for staging environment
 labels:
   - pairs:
       environment: staging
       managed-by: kustomize
 
-# Replica counts for staging
 replicas:
   - name: question-svc
     count: 2
