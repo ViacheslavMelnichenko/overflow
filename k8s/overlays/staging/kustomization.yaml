@@ -6,6 +6,7 @@ namespace: apps-staging
 resources:
   - ../../base/question-svc
   - ../../base/search-svc
+  - ingress.yaml
 
 # Image configuration - will be updated by CI/CD
 images:
@@ -47,35 +48,4 @@ replicas:
   - name: search-svc
     count: 2
 
-# Patch ingress hosts for staging
-patches:
-  - target:
-      kind: Ingress
-      name: question-svc
-    patch: |-
-      - op: replace
-        path: /spec/rules/0/host
-        value: overflow-api-staging.helios
-  - target:
-      kind: Ingress
-      name: search-svc
-    patch: |-
-      - op: replace
-        path: /spec/rules/0/host
-        value: overflow-search-staging.helios
-
-  - target:
-      kind: Ingress
-      name: question-svc
-    patch: |-
-      - op: replace
-        path: /spec/rules/0/host
-        value: overflow-api-staging.helios
-  - target:
-      kind: Ingress
-      name: search-svc
-    patch: |-
-      - op: replace
-        path: /spec/rules/0/host
-        value: overflow-api-staging.helios
 
