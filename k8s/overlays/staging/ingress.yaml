@@ -28,14 +28,15 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /api/search$1
 spec:
   ingressClassName: nginx
   rules:
     - host: overflow-api-staging.helios
       http:
         paths:
-          - path: /search
-            pathType: Prefix
+          - path: /search(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: search-svc
