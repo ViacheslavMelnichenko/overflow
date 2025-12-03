@@ -13,8 +13,8 @@ resources:
 
 # Image tags updated by CI/CD
 images:
-  - name: ghcr.io/placeholder/overflow-questions
-    newName: ghcr.io/GITHUB_USERNAME/overflow-questions
+  - name: ghcr.io/placeholder/overflow-question
+    newName: ghcr.io/GITHUB_USERNAME/overflow-question
     newTag: latest
   - name: ghcr.io/placeholder/overflow-search
     newName: ghcr.io/GITHUB_USERNAME/overflow-search

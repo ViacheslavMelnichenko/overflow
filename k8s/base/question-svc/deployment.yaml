@@ -20,7 +20,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: question-svc
-          image: ghcr.io/placeholder/overflow-questions:latest
+          image: ghcr.io/placeholder/overflow-question:latest
           imagePullPolicy: Always
           ports:
             - name: http
