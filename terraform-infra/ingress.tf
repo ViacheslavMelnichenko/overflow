@@ -1,6 +1,23 @@
+# ========================================
+# INGRESS CONFIGURATION
+# ========================================
+# This file manages:
+# 1. NGINX Ingress Controller installation
+# 2. Infrastructure service ingress rules (RabbitMQ, Typesense, Keycloak)
+#
+# Application service ingresses (Question Service, Search Service) are managed
+# separately in k8s/overlays/{staging,production}/ingress.yaml via Kustomize.
+#
+# This separation keeps:
+# - Infrastructure concerns in Terraform (one-time setup)
+# - Application routing in K8s manifests (frequent changes, per-environment)
+# ========================================
+
 ############################
 # INGRESS CONTROLLER
 ############################
+# Deploys NGINX Ingress Controller to handle all ingress traffic.
+# This is a cluster-wide component that routes external traffic to services.
 
 resource "helm_release" "ingress_nginx" {
   name             = "ingress-nginx"
@@ -12,8 +29,13 @@ resource "helm_release" "ingress_nginx" {
 }
 
 ############################
-# KEYCLOAK INGRESS
+# KEYCLOAK INGRESS (GLOBAL)
 ############################
+# Exposes Keycloak authentication service for the entire cluster.
+# Used by both staging and production environments.
+#
+# Host: keycloak.helios
+# Target: keycloak:8080 in infra-production namespace
 
 resource "kubernetes_ingress_v1" "keycloak_global" {
   metadata {
@@ -52,9 +74,14 @@ resource "kubernetes_ingress_v1" "keycloak_global" {
 }
 
 ############################
-# INGRESS — STAGING (INFRA)
+# STAGING INFRASTRUCTURE INGRESSES
 ############################
+# These expose infrastructure services for the staging environment.
+# Used for debugging, monitoring, and manual testing.
 
+# RabbitMQ Management UI (Staging)
+# Host: overflow-rabbit-staging.helios
+# Provides web UI to monitor message queues, exchanges, and consumers
 resource "kubernetes_ingress_v1" "rabbitmq_staging" {
   metadata {
     name      = "rabbitmq-staging"
@@ -76,7 +103,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_staging" {
             service {
               name = "rabbitmq-staging"
               port {
-                number = 15672
+                number = 15672  # RabbitMQ Management UI port
               }
             }
           }
@@ -88,39 +115,9 @@ resource "kubernetes_ingress_v1" "rabbitmq_staging" {
   depends_on = [helm_release.rabbitmq_staging]
 }
 
-resource "kubernetes_ingress_v1" "typesense_api_staging" {
-  metadata {
-    name      = "typesense-api-staging"
-    namespace = kubernetes_namespace.infra_staging.metadata[0].name
-  }
-
-  spec {
-    ingress_class_name = "nginx"
-
-    rule {
-      host = "overflow-typesense-staging.helios"
-
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = "typesense"
-              port {
-                number = 8108
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  depends_on = [kubernetes_stateful_set.typesense_staging]
-}
-
+# Typesense Dashboard (Staging)
+# Host: overflow-typesense-staging.helios
+# Web UI for managing search collections and viewing search analytics
 resource "kubernetes_ingress_v1" "typesense_dashboard_staging" {
   metadata {
     name      = "typesense-dashboard-staging"
@@ -131,7 +128,7 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_staging" {
     ingress_class_name = "nginx"
 
     rule {
-      host = "typesense-staging.helios"
+      host = "overflow-typesense-staging.helios"
 
       http {
         path {
@@ -154,107 +151,54 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_staging" {
   depends_on = [kubernetes_deployment.typesense_dashboard_staging]
 }
 
-############################
-# INGRESS — STAGING (APPS)
-############################
+# Typesense API Endpoint (Staging)
+# Host: overflow-typesense-api-staging.helios
+# Direct API access to Typesense for testing and debugging.
+# CORS is enabled to allow dashboard access from browser.
+resource "kubernetes_ingress_v1" "typesense_api_endpoint_staging" {
+  metadata {
+    name      = "typesense-api-staging"
+    namespace = kubernetes_namespace.infra_staging.metadata[0].name
+    annotations = {
+      "nginx.ingress.kubernetes.io/cors-allow-origin"  = "*"
+      "nginx.ingress.kubernetes.io/cors-allow-methods" = "GET, POST, PUT, DELETE, OPTIONS"
+      "nginx.ingress.kubernetes.io/cors-allow-headers" = "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-TYPESENSE-API-KEY"
+      "nginx.ingress.kubernetes.io/enable-cors"        = "true"
+    }
+  }
 
-# resource "kubernetes_ingress_v1" "aspire_staging" {
-#   metadata {
-#     name      = "aspire-staging"
-#     namespace = kubernetes_namespace.apps_staging.metadata[0].name
-#   }
-# 
-#   spec {
-#     ingress_class_name = "nginx"
-# 
-#     rule {
-#       host = "aspire-staging.helios"
-# 
-#       http {
-#         path {
-#           path      = "/"
-#           path_type = "Prefix"
-# 
-#           backend {
-#             service {
-#               name = "aspire-staging"
-#               port {
-#                 number = 18888
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+  spec {
+    ingress_class_name = "nginx"
 
-# resource "kubernetes_ingress_v1" "questions_api_staging" {
-#   metadata {
-#     name      = "questions-api-staging"
-#     namespace = kubernetes_namespace.apps_staging.metadata[0].name
-#   }
-# 
-#   spec {
-#     ingress_class_name = "nginx"
-# 
-#     rule {
-#       host = "questions-api-staging.helios"
-# 
-#       http {
-#         path {
-#           path      = "/"
-#           path_type = "Prefix"
-# 
-#           backend {
-#             service {
-#               name = "questions-api-staging"
-#               port {
-#                 number = 7001
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+    rule {
+      host = "overflow-typesense-api-staging.helios"
 
-# resource "kubernetes_ingress_v1" "search_api_staging" {
-#   metadata {
-#     name      = "search-api-staging"
-#     namespace = kubernetes_namespace.apps_staging.metadata[0].name
-#   }
-# 
-#   spec {
-#     ingress_class_name = "nginx"
-# 
-#     rule {
-#       host = "search-api-staging.helios"
-# 
-#       http {
-#         path {
-#           path      = "/"
-#           path_type = "Prefix"
-# 
-#           backend {
-#             service {
-#               name = "search-api-staging"
-#               port {
-#                 number = 7002
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "typesense"
+              port {
+                number = 8108  # Typesense API port
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [kubernetes_stateful_set.typesense_staging]
+}
 
 ############################
-# INGRESS — PRODUCTION (INFRA)
+# PRODUCTION INFRASTRUCTURE INGRESSES
 ############################
 
+# RabbitMQ Management UI - overflow-rabbit.helios
 resource "kubernetes_ingress_v1" "rabbitmq_production" {
   metadata {
     name      = "rabbitmq-production"
@@ -276,7 +220,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
             service {
               name = "rabbitmq-production"
               port {
-                number = 15672
+                number = 15672  # RabbitMQ Management UI port
               }
             }
           }
@@ -288,9 +232,9 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
   depends_on = [helm_release.rabbitmq_production]
 }
 
-resource "kubernetes_ingress_v1" "typesense_api_production" {
+resource "kubernetes_ingress_v1" "typesense_dashboard_ui_production" {
   metadata {
-    name      = "typesense-api-production"
+    name      = "typesense-dashboard-ui"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
   }
 
@@ -299,39 +243,6 @@ resource "kubernetes_ingress_v1" "typesense_api_production" {
 
     rule {
       host = "overflow-typesense.helios"
-
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = "typesense"
-              port {
-                number = 8108
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  depends_on = [kubernetes_stateful_set.typesense_production]
-}
-
-resource "kubernetes_ingress_v1" "typesense_dashboard_production" {
-  metadata {
-    name      = "typesense-dashboard-production"
-    namespace = kubernetes_namespace.infra_production.metadata[0].name
-  }
-
-  spec {
-    ingress_class_name = "nginx"
-
-    rule {
-      host = "typesense-production.helios"
 
       http {
         path {
@@ -354,100 +265,42 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_production" {
   depends_on = [kubernetes_deployment.typesense_dashboard_production]
 }
 
-############################
-# INGRESS — PRODUCTION (APPS)
-############################
+# Typesense API endpoint for dashboard to connect to
+resource "kubernetes_ingress_v1" "typesense_api_endpoint_production" {
+  metadata {
+    name      = "typesense-api-production"
+    namespace = kubernetes_namespace.infra_production.metadata[0].name
+    annotations = {
+      "nginx.ingress.kubernetes.io/cors-allow-origin"  = "*"
+      "nginx.ingress.kubernetes.io/cors-allow-methods" = "GET, POST, PUT, DELETE, OPTIONS"
+      "nginx.ingress.kubernetes.io/cors-allow-headers" = "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-TYPESENSE-API-KEY"
+      "nginx.ingress.kubernetes.io/enable-cors"        = "true"
+    }
+  }
 
-# resource "kubernetes_ingress_v1" "aspire_production" {
-#   metadata {
-#     name      = "aspire-production"
-#     namespace = kubernetes_namespace.apps_production.metadata[0].name
-#   }
-# 
-#   spec {
-#     ingress_class_name = "nginx"
-# 
-#     rule {
-#       host = "aspire-production.helios"
-# 
-#       http {
-#         path {
-#           path      = "/"
-#           path_type = "Prefix"
-# 
-#           backend {
-#             service {
-#               name = "aspire-production"
-#               port {
-#                 number = 18888
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+  spec {
+    ingress_class_name = "nginx"
 
-# resource "kubernetes_ingress_v1" "questions_api_production" {
-#   metadata {
-#     name      = "questions-api-production"
-#     namespace = kubernetes_namespace.apps_production.metadata[0].name
-#   }
-# 
-#   spec {
-#     ingress_class_name = "nginx"
-# 
-#     rule {
-#       host = "questions-api-production.helios"
-# 
-#       http {
-#         path {
-#           path      = "/"
-#           path_type = "Prefix"
-# 
-#           backend {
-#             service {
-#               name = "questions-api-production"
-#               port {
-#                 number = 7001
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+    rule {
+      host = "overflow-typesense-api.helios"
 
-# resource "kubernetes_ingress_v1" "search_api_production" {
-#   metadata {
-#     name      = "search-api-production"
-#     namespace = kubernetes_namespace.apps_production.metadata[0].name
-#   }
-# 
-#   spec {
-#     ingress_class_name = "nginx"
-# 
-#     rule {
-#       host = "search-api-production.helios"
-# 
-#       http {
-#         path {
-#           path      = "/"
-#           path_type = "Prefix"
-# 
-#           backend {
-#             service {
-#               name = "search-api-production"
-#               port {
-#                 number = 7002
-#               }
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
 
+          backend {
+            service {
+              name = "typesense"
+              port {
+                number = 8108
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [kubernetes_stateful_set.typesense_production]
+}

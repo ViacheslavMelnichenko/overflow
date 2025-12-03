@@ -71,8 +71,8 @@ jobs:
 
       - name: 🐳 Build & push QuestionService
         run: |
-          docker build -f QuestionService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }} .
-          docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-questions:${{ env.IMAGE_TAG }}
+          docker build -f QuestionService/Dockerfile -t ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-question:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/overflow-question:${{ env.IMAGE_TAG }}
 
       - name: 🐳 Build & push SearchService
         run: |

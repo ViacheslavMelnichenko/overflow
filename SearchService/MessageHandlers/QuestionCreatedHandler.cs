@@ -5,7 +5,7 @@ using Typesense;
 
 namespace SearchService.MessageHandlers;
 
-public class QuestionCreatedHandler(ITypesenseClient client)
+public class QuestionCreatedHandler(ITypesenseClient client, ILogger<QuestionCreatedHandler> logger)
 {
     public async Task HandleAsync(QuestionCreated message)
     {
@@ -19,9 +19,10 @@ public class QuestionCreatedHandler(ITypesenseClient client)
             CreatedAt = created,
             Tags = message.Tags.ToArray(),
         };
+        
         await client.CreateDocument("questions", doc);
         
-        Console.WriteLine($"Created question with id {message.QuestionId}");
+        logger.LogInformation("✅ Indexed question {QuestionId}: {Title}", message.QuestionId, message.Title);
     }
 
     private static string StripHtml(string content)

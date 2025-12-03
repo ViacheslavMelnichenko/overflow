@@ -1,4 +1,7 @@
-﻿apiVersion: kustomize.config.k8s.io/v1beta1
+﻿# Production Environment Kustomization
+# Namespace: apps-production | Replicas: 3 per service (high availability)
+
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 namespace: apps-production
@@ -6,25 +9,24 @@ namespace: apps-production
 resources:
   - ../../base/question-svc
   - ../../base/search-svc
+  - ingress.yaml
 
-# Image configuration - will be updated by CI/CD
+# Image tags updated by CI/CD
 images:
-  - name: ghcr.io/placeholder/overflow-questions
-    newName: ghcr.io/GITHUB_USERNAME/overflow-questions
+  - name: ghcr.io/placeholder/overflow-question
+    newName: ghcr.io/GITHUB_USERNAME/overflow-question
     newTag: latest
   - name: ghcr.io/placeholder/overflow-search
     newName: ghcr.io/GITHUB_USERNAME/overflow-search
     newTag: latest
 
-# ConfigMap for non-sensitive configuration
 configMapGenerator:
   - name: app-config
     behavior: create
     literals:
       - aspnetcore-environment=Production
 
-# Secret placeholder - will be created by CI/CD with actual values from Infisical
-# DO NOT put real secrets here - they come from GitHub Secrets
+# Secrets replaced by CI/CD with actual values from GitHub Secrets
 secretGenerator:
   - name: app-secrets
     behavior: create
@@ -36,13 +38,11 @@ secretGenerator:
       - keycloak-client-id=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
       - keycloak-client-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
 
-# Common labels for production environment
 labels:
   - pairs:
       environment: production
       managed-by: kustomize
 
-# Replica counts for production (higher for availability)
 replicas:
   - name: question-svc
     count: 3

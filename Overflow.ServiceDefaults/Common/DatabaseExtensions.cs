@@ -14,14 +14,11 @@ public static class DatabaseExtensions
     /// <summary>
     /// Applies pending EF Core migrations automatically on application startup.
     /// This is useful for development and staging environments.
-    /// For production, consider using a separate migration tool or CI/CD pipeline.
     /// </summary>
     /// <typeparam name="TContext">The DbContext type to migrate.</typeparam>
     /// <param name="app">The web application.</param>
     /// <param name="seedData">Optional action to seed data after migration.</param>
-    /// <returns>The web application for chaining.</returns>
-    public static async Task<WebApplication> MigrateDatabaseAsync<TContext>(
-        this WebApplication app, 
+    public static async Task MigrateDatabaseAsync<TContext>(this WebApplication app,
         Func<TContext, Task>? seedData = null) 
         where TContext : DbContext
     {
@@ -70,8 +67,6 @@ public static class DatabaseExtensions
             
             logger.LogWarning("⚠️ Application will continue, but database may not be properly initialized");
         }
-        
-        return app;
     }
     
     /// <summary>

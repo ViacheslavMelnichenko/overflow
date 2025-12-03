@@ -1,5 +1,5 @@
-﻿# Staging Application Ingress
-# Host: overflow-api-staging.helios
+﻿# Production Application Ingress
+# Host: overflow-api.helios
 # Routes external traffic to Question and Search services
 
 ---
@@ -8,13 +8,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: question-svc-ingress
-  namespace: apps-staging
+  namespace: apps-production
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
-    - host: overflow-api-staging.helios
+    - host: overflow-api.helios
       http:
         paths:
           - path: /questions
@@ -30,13 +30,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: search-svc-ingress
-  namespace: apps-staging
+  namespace: apps-production
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
-    - host: overflow-api-staging.helios
+    - host: overflow-api.helios
       http:
         paths:
           - path: /search
