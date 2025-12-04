@@ -10,14 +10,17 @@ if (builder.Environment.IsDevelopment())
     var keycloak = builder
         .AddKeycloak("keycloak", 6001)
         .WithDataVolume("keycloak-data");
-    
+
     // Question Service configuration
     var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
         .WithReference(keycloak)
         .WithKeycloakOptions(builder.Configuration)
         .WaitFor(keycloak);
-}
 
+    var webapp = builder.AddNpmApp("webapp", "../webapp", "dev")
+        .WithReference(keycloak)
+        .WithHttpEndpoint(env: "PORT", port: 3000);
+}
 
 // var postgres = builder.AddPostgres("postgres", port: 5432)
 //     .WithDataVolume("postgres-data")
