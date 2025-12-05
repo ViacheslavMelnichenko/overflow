@@ -1,4 +1,4 @@
-import {getQuestions} from "@/lib/actions/question-actions";
+import {getQuestions} from "@/src/lib/actions/question-actions";
 import QuestionCard from "@/src/app/questions/QuestionCard";
 import QuestionsHeader from "@/src/app/questions/QuestionsHeader";
 

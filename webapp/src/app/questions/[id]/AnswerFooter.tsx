@@ -1,4 +1,4 @@
-import {Answer} from "@/lib/types";
+import {Answer} from "@/src/lib/types";
 import {Avatar} from "@heroui/avatar";
 
 type Props = {

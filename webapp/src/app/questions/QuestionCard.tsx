@@ -1,6 +1,6 @@
 'use client';
 
-import {Question} from "@/lib/types";
+import {Question} from "@/src/lib/types";
 import Link from "next/link";
 import {Chip} from "@heroui/chip";
 import {Avatar} from "@heroui/avatar";

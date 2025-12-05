@@ -1,4 +1,4 @@
-import {Answer} from "@/lib/types";
+import {Answer} from "@/src/lib/types";
 import VotingButtons from "@/src/app/questions/[id]/VotingButtons";
 import AnswerFooter from "@/src/app/questions/[id]/AnswerFooter";
 

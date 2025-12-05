@@ -1,4 +1,4 @@
-import {Question} from "@/lib/types";
+import {Question} from "@/src/lib/types";
 import {Chip} from "@heroui/chip";
 import Link from "next/link";
 import {Avatar} from "@heroui/avatar";
