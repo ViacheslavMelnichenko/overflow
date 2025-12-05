@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import {Question} from "@/lib/types";
 import Link from "next/link";
@@ -32,13 +32,13 @@ export default function QuestionCard({question}: Props) {
                         )}
                         {question.answerCount} {question.answerCount === 1 ? 'answer' : 'answers'}
                     </span>
-
+                    
                 </div>
                 <div>{question.viewCount} {question.viewCount === 1 ? 'view' : 'views'}</div>
             </div>
             <div className='flex flex-1 justify-between min-h-[8rem]'>
                 <div className='flex flex-col gap-2'>
-                    <Link
+                    <Link 
                         href={`/questions/${question.id}`}
                         className='text-primary font-semibold hover:underline first-letter:uppercase'
                     >
@@ -61,9 +61,9 @@ export default function QuestionCard({question}: Props) {
                                 </Chip>
                             ))}
                         </div>
-
+                        
                         <div className='text-sm flex items-center gap-2'>
-                            <Avatar
+                            <Avatar 
                                 className='h-6 w-6'
                                 color='secondary'
                                 name={question.askerDisplayName.charAt(0)}
