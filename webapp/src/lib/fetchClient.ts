@@ -1,19 +1,19 @@
-﻿import {notFound} from "next/navigation";
+import {notFound} from "next/navigation";
 
 export async function fetchClient<T>(
     url: string,
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE', 
     options: Omit<RequestInit, 'body'> & {body?: unknown} = {}
 ): Promise<{data: T | null, error?: {message: string, status: number}}> {
     const {body, ...rest} = options;
     const apiUrl = process.env.API_URL;
     if (!apiUrl) throw new Error('Missing API URL');
-
+    
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
         ...(rest.headers || {})
     }
-
+    
     const response = await fetch(apiUrl + url, {
         method,
         headers,
@@ -25,26 +25,26 @@ export async function fetchClient<T>(
     const isJson = contentType?.includes('application/json')
         || contentType?.includes('application/problem+json');
     const parsed = isJson ? await response.json() : await response.text();
-
+    
     if (!response.ok) {
         if (response.status === 404) return notFound();
         if (response.status === 500) throw new Error('Server error. Please try again later');
-
+        
         let message = '';
-
+        
         if (typeof parsed === 'string') {
             message = parsed
         } else if (parsed?.message) {
             message = parsed?.message;
         }
-
+        
         if (!message) {
             message = getFallbackMessage(response.status)
         }
-
+        
         return {data: null, error: {message, status: response.status}}
     }
-
+    
     return {data: parsed as T};
 }
 

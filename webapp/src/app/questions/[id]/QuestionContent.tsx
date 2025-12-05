@@ -1,6 +1,6 @@
-import {Question} from "@/src/lib/types";
-import VotingButtons from "@/src/app/questions/[id]/VotingButtons";
-import QuestionFooter from "@/src/app/questions/[id]/QuestionFooter";
+import {Question} from "@/lib/types";
+import VotingButtons from "@/app/questions/[id]/VotingButtons";
+import QuestionFooter from "@/app/questions/[id]/QuestionFooter";
 
 type Props = {
     question: Question;

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Providers from "@/src/components/Providers";
-import TopNav from "@/src/components/nav/TopNav";
-import SideMenu from "@/src/components/SideMenu";
+import Providers from "@/components/Providers";
+import TopNav from "@/components/nav/TopNav";
+import SideMenu from "@/components/SideMenu";
 
 export const metadata: Metadata = {
   title: "Overflow",
