@@ -1,3 +1,5 @@
+'use client';
+
 import {Question} from "@/lib/types";
 import Link from "next/link";
 import {Chip} from "@heroui/chip";

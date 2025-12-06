@@ -1,3 +1,5 @@
+'use client';
+
 import {Card, CardBody, CardFooter, CardHeader} from "@heroui/card";
 import Link from "next/link";
 import {Tag} from "@/lib/types";
