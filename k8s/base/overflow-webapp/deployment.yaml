@@ -36,28 +36,28 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: api-url
+                  key: API_URL
             - name: NEXT_PUBLIC_API_URL
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: api-url
+                  key: API_URL
             # Auth URLs
             - name: AUTH_URL
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: auth-url
+                  key: AUTH_URL
             - name: AUTH_URL_INTERNAL
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: auth-url-internal
+                  key: AUTH_URL_INTERNAL
             - name: NEXT_PUBLIC_AUTH_URL
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: auth-url
+                  key: AUTH_URL
             # Auth/Keycloak configuration
             - name: AUTH_SECRET
               valueFrom:
@@ -68,7 +68,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: keycloak-client-id
+                  key: AUTH_KEYCLOAK_ID
             - name: AUTH_KEYCLOAK_SECRET
               valueFrom:
                 secretKeyRef:
@@ -78,18 +78,18 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: keycloak-issuer
+                  key: AUTH_KEYCLOAK_ISSUER
             - name: AUTH_KEYCLOAK_ISSUER_INTERNAL
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: keycloak-issuer-internal
+                  key: AUTH_KEYCLOAK_ISSUER_INTERNAL
             # Cloudinary configuration
             - name: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
               valueFrom:
                 configMapKeyRef:
                   name: webapp-config
-                  key: cloudinary-cloud-name
+                  key: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
             - name: NEXT_PUBLIC_CLOUDINARY_API_KEY
               valueFrom:
                 secretKeyRef:
