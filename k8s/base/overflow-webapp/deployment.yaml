@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webapp
+  name: overflow-webapp
   labels:
-    app: webapp
+    app: overflow-webapp
     component: frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: webapp
+      app: overflow-webapp
   template:
     metadata:
       labels:
-        app: webapp
+        app: overflow-webapp
         component: frontend
     spec:
       imagePullSecrets:
