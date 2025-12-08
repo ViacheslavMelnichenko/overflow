@@ -21,6 +21,23 @@ RUN \
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Set dummy environment variables for build time
+# Real values will be provided by Kubernetes at runtime
+ENV AUTH_KEYCLOAK_SECRET=build-time-dummy
+ENV AUTH_SECRET=build-time-dummy-secret-key-at-least-32-characters-long
+ENV NEXT_PUBLIC_API_URL=http://localhost:8080
+ENV NEXT_PUBLIC_AUTH_URL=http://localhost:3000
+ENV API_URL=http://localhost:8080
+ENV AUTH_URL=http://localhost:3000
+ENV AUTH_URL_INTERNAL=http://localhost:3000
+ENV AUTH_KEYCLOAK_ID=nextjs
+ENV AUTH_KEYCLOAK_ISSUER=http://localhost/realms/overflow
+ENV AUTH_KEYCLOAK_ISSUER_INTERNAL=http://localhost/realms/overflow
+ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dummy
+ENV NEXT_PUBLIC_CLOUDINARY_API_KEY=dummy
+ENV CLOUDINARY_API_SECRET=dummy
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
