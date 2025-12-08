@@ -9,7 +9,7 @@ namespace: apps-production
 resources:
   - ../../base/question-svc
   - ../../base/search-svc
-  - ../../base/webapp
+  - ../../base/overflow-webapp
   - ingress.yaml
 
 # Image tags updated by CI/C

@@ -3,7 +3,13 @@ import Keycloak from "next-auth/providers/keycloak"
 import {authConfig} from "@/lib/config";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    trustHost: true,
+    secret: authConfig.secret,
+    debug: true,
     providers: [Keycloak({
+        clientId: authConfig.kcClientId,
+        clientSecret: authConfig.kcSecret,
+        issuer: authConfig.kcIssuer,
         authorization: {
             params: {scope: 'openid profile email offline_access'},
             url: `${authConfig.kcIssuer}/protocol/openid-connect/auth`
@@ -46,7 +52,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const refreshed = await response.json()
                 
                 if (!response.ok) {
-                    console.log('Failed to refresh token', refreshed);
+                    console.error('[auth] Failed to refresh token:', {
+                        status: response.status,
+                        error: refreshed
+                    });
                     token.error = 'RefreshAccessTokenError';
                     return token;
                 }
@@ -55,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 token.refreshToken = refreshed.refresh_token;
                 token.accessTokenExpires = now + refreshed.expires_in!;
             } catch (error) {
-                console.log('Failed to refresh token', error);
+                console.error('[auth] Exception during token refresh:', error);
                 token.error = 'RefreshAccessTokenError';
             }
             
