@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  labels:
+    app: webapp
+    component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+        component: frontend
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: webapp
+          image: ghcr.io/placeholder/overflow-webapp:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+            # API URLs
+            - name: API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: api-url
+            - name: NEXT_PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: api-url
+            # Auth URLs
+            - name: AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: auth-url
+            - name: AUTH_URL_INTERNAL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: auth-url-internal
+            - name: NEXT_PUBLIC_AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: auth-url
+            # Auth/Keycloak configuration
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-secrets
+                  key: auth-secret
+            - name: AUTH_KEYCLOAK_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: keycloak-client-id
+            - name: AUTH_KEYCLOAK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-secrets
+                  key: auth-keycloak-secret
+            - name: AUTH_KEYCLOAK_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: keycloak-issuer
+            - name: AUTH_KEYCLOAK_ISSUER_INTERNAL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: keycloak-issuer-internal
+            # Cloudinary configuration
+            - name: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: cloudinary-cloud-name
+            - name: NEXT_PUBLIC_CLOUDINARY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-secrets
+                  key: cloudinary-api-key
+            - name: CLOUDINARY_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-secrets
+                  key: cloudinary-api-secret
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 12
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

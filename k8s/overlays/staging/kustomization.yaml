@@ -19,12 +19,19 @@ images:
   - name: ghcr.io/placeholder/overflow-search
     newName: ghcr.io/GITHUB_USERNAME/overflow-search
     newTag: latest
+  - name: ghcr.io/placeholder/overflow-webapp
+    newName: ghcr.io/GITHUB_USERNAME/overflow-webapp
+    newTag: latest
 
 configMapGenerator:
   - name: app-config
     behavior: create
     literals:
       - aspnetcore-environment=Staging
+  - name: webapp-config
+    behavior: create
+    envs:
+      - ../../webapp/.env.staging
 
 # Secrets replaced by CI/CD with actual values from GitHub Secrets
 secretGenerator:
@@ -35,6 +42,13 @@ secretGenerator:
       - rabbitmq-connection=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
       - typesense-connection=http://typesense.infra-staging.svc.cluster.local:8108
       - typesense-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+  - name: webapp-secrets
+    behavior: create
+    literals:
+      - auth-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - auth-keycloak-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - cloudinary-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - cloudinary-api-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
 
 labels:
   - pairs:
@@ -45,6 +59,8 @@ replicas:
   - name: question-svc
     count: 2
   - name: search-svc
+    count: 2
+  - name: webapp
     count: 2
 
 
