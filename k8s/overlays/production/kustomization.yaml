@@ -31,8 +31,14 @@ configMapGenerator:
       - aspnetcore-environment=Production
   - name: webapp-config
     behavior: create
-    envs:
-      - ../../../webapp/.env.production
+    literals:
+      - API_URL=PLACEHOLDER
+      - AUTH_KEYCLOAK_ID=PLACEHOLDER
+      - AUTH_KEYCLOAK_ISSUER=PLACEHOLDER
+      - AUTH_KEYCLOAK_ISSUER_INTERNAL=PLACEHOLDER
+      - AUTH_URL=PLACEHOLDER
+      - AUTH_URL_INTERNAL=PLACEHOLDER
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=PLACEHOLDER
 
 # Secrets replaced by CI/CD with actual values from GitHub Secrets
 secretGenerator:
