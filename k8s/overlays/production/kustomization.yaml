@@ -32,7 +32,7 @@ configMapGenerator:
   - name: webapp-config
     behavior: create
     envs:
-      - ../../webapp/.env.production
+      - ../../../webapp/.env.production
 
 # Secrets replaced by CI/CD with actual values from GitHub Secrets
 secretGenerator:
