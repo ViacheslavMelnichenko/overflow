@@ -69,7 +69,9 @@ var yarp = builder.AddYarp("gateway")
 
 var webapp = builder.AddNpmApp("webapp", "../webapp", "dev")
     .WithReference(keycloak)
-    .WithHttpEndpoint(env: "PORT", port: 3000);
+    .WithHttpEndpoint(env: "PORT", port: 3000, targetPort: 4000)
+    .WithEnvironment("VIRTUAL_HOST", "app.overflow.local")
+    .WithEnvironment("VIRTUAL_PORT", "4000");
 
 if (!builder.Environment.IsDevelopment())
 {

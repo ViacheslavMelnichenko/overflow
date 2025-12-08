@@ -14,14 +14,11 @@ export default function QuestionFooter({ question }: Props) {
             <div className='flex flex-col self-end'>
                 <div className='flex gap-2'>
                     {question.tagSlugs.map(tag => (
-                        <Chip
-                            as={Link}
-                            variant='bordered'
-                            href={`/questions?tag=${tag}`}
-                            key={tag}
-                        >
-                            {tag}
-                        </Chip>
+                        <Link key={tag} href={`/questions?tag=${tag}`}>
+                            <Chip variant='bordered'>
+                                {tag}
+                            </Chip>
+                        </Link>
                     ))}
                 </div>
             </div>

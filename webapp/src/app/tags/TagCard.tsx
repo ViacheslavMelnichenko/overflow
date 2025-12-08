@@ -1,5 +1,3 @@
-'use client';
-
 import {Card, CardBody, CardFooter, CardHeader} from "@heroui/card";
 import Link from "next/link";
 import {Tag} from "@/lib/types";
@@ -11,18 +9,20 @@ type Props = {
 
 export default function TagCard({tag}: Props) {
     return (
-        <Card as={Link} href={`/questions?tag=${tag.slug}`} isHoverable isPressable>
-            <CardHeader>
-                <Chip variant='bordered'>
-                    {tag.slug}
-                </Chip>
-            </CardHeader>
-            <CardBody>
-                <p className='line-clamp-3'>{tag.description}</p>
-            </CardBody>
-            <CardFooter>
-                42 questions
-            </CardFooter>
-        </Card>
+        <Link href={`/questions?tag=${tag.slug}`}>
+            <Card isHoverable isPressable>
+                <CardHeader>
+                    <Chip variant='bordered'>
+                        {tag.slug}
+                    </Chip>
+                </CardHeader>
+                <CardBody>
+                    <p className='line-clamp-3'>{tag.description}</p>
+                </CardBody>
+                <CardFooter>
+                    42 questions
+                </CardFooter>
+            </Card>
+        </Link>
     );
 }
