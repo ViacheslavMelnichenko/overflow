@@ -149,8 +149,10 @@ jobs:
       - name: 🔧 Inject webapp config from .env
         working-directory: ./k8s/overlays/${{ env.OVERLAY }}
         run: |
-          # Load values from .env.staging
-          source ../../webapp/.env.staging
+          # Load values from .env.staging using absolute path
+          set -a  # automatically export all variables
+          source ${{ github.workspace }}/webapp/.env.staging
+          set +a
           
           # Inject into kustomization.yaml
           sed -i "s|API_URL=PLACEHOLDER|API_URL=${API_URL}|g" kustomization.yaml
