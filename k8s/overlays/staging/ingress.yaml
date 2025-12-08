@@ -4,6 +4,7 @@
 
 ---
 # Question Service: /questions -> question-svc:8080/questions
+# Question Service: /tags -> question-svc:8080/tags
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -18,6 +19,13 @@ spec:
       http:
         paths:
           - path: /questions
+            pathType: Prefix
+            backend:
+              service:
+                name: question-svc
+                port:
+                  number: 8080
+          - path: /tags
             pathType: Prefix
             backend:
               service:
