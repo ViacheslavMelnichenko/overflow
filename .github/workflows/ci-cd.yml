@@ -106,7 +106,7 @@ jobs:
   # ============================================================================
   deploy-staging:
     name: 🚀 Deploy to Staging
-    needs: build-and-test
+    needs: build-images
     if: |
       (github.ref == 'refs/heads/development' && github.event_name == 'push') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
@@ -262,8 +262,10 @@ jobs:
       - name: 🔧 Inject webapp config from .env
         working-directory: ./k8s/overlays/${{ env.OVERLAY }}
         run: |
-          # Load values from .env.production
-          source ../../webapp/.env.production
+          # Load values from .env.production using absolute path
+          set -a  # automatically export all variables
+          source ${{ github.workspace }}/webapp/.env.production
+          set +a
           
           # Inject into kustomization.yaml
           sed -i "s|API_URL=PLACEHOLDER|API_URL=${API_URL}|g" kustomization.yaml
