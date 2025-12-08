@@ -1,4 +1,4 @@
-﻿name: CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -152,6 +152,10 @@ jobs:
           sed -i "s|typesense-api-key=.*|typesense-api-key=${{ secrets.TYPESENSE_API_KEY }}|g" kustomization.yaml
           sed -i "s|keycloak-client-id=.*|keycloak-client-id=${{ secrets.KEYCLOAK_CLIENT_ID }}|g" kustomization.yaml
           sed -i "s|keycloak-client-secret=.*|keycloak-client-secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}|g" kustomization.yaml
+          sed -i "s|auth-secret=.*|auth-secret=${{ secrets.AUTH_SECRET }}|g" kustomization.yaml
+          sed -i "s|auth-keycloak-secret=.*|auth-keycloak-secret=${{ secrets.AUTH_KEYCLOAK_SECRET }}|g" kustomization.yaml
+          sed -i "s|cloudinary-api-key=.*|cloudinary-api-key=${{ secrets.NEXT_PUBLIC_CLOUDINARY_API_KEY }}|g" kustomization.yaml
+          sed -i "s|cloudinary-api-secret=.*|cloudinary-api-secret=${{ secrets.CLOUDINARY_API_SECRET }}|g" kustomization.yaml
 
       - name: 👀 Preview manifests
         working-directory: ./k8s/overlays/${{ env.OVERLAY }}
@@ -165,6 +169,7 @@ jobs:
         run: |
           kubectl rollout status deployment/question-svc -n ${{ env.NAMESPACE }} --timeout=1m
           kubectl rollout status deployment/search-svc -n ${{ env.NAMESPACE }} --timeout=1m
+          kubectl rollout status deployment/overflow-webapp -n ${{ env.NAMESPACE }} --timeout=1m
 
       - name: 📊 Deployment status
         run: |
@@ -174,8 +179,8 @@ jobs:
           kubectl logs -n ${{ env.NAMESPACE }} -l app=question-svc --tail=30 --prefix=true || true
           echo "=== Logs from search-svc ==="
           kubectl logs -n ${{ env.NAMESPACE }} -l app=search-svc --tail=30 --prefix=true || true
-          echo "=== Logs from webapp ==="
-          kubectl logs -n ${{ env.NAMESPACE }} -l app=webapp --tail=30 --prefix=true || true
+          echo "=== Logs from overflow-webapp ==="
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=overflow-webapp --tail=30 --prefix=true || true
 
   # ============================================================================
   # PRODUCTION DEPLOYMENT (main branch → apps-production namespace)
@@ -230,6 +235,10 @@ jobs:
           sed -i "s|typesense-api-key=.*|typesense-api-key=${{ secrets.TYPESENSE_API_KEY }}|g" kustomization.yaml
           sed -i "s|keycloak-client-id=.*|keycloak-client-id=${{ secrets.KEYCLOAK_CLIENT_ID }}|g" kustomization.yaml
           sed -i "s|keycloak-client-secret=.*|keycloak-client-secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}|g" kustomization.yaml
+          sed -i "s|auth-secret=.*|auth-secret=${{ secrets.AUTH_SECRET }}|g" kustomization.yaml
+          sed -i "s|auth-keycloak-secret=.*|auth-keycloak-secret=${{ secrets.AUTH_KEYCLOAK_SECRET }}|g" kustomization.yaml
+          sed -i "s|cloudinary-api-key=.*|cloudinary-api-key=${{ secrets.NEXT_PUBLIC_CLOUDINARY_API_KEY }}|g" kustomization.yaml
+          sed -i "s|cloudinary-api-secret=.*|cloudinary-api-secret=${{ secrets.CLOUDINARY_API_SECRET }}|g" kustomization.yaml
 
       - name: 👀 Preview manifests
         working-directory: ./k8s/overlays/${{ env.OVERLAY }}
@@ -243,7 +252,7 @@ jobs:
         run: |
           kubectl rollout status deployment/question-svc -n ${{ env.NAMESPACE }} --timeout=5m
           kubectl rollout status deployment/search-svc -n ${{ env.NAMESPACE }} --timeout=5m
-          kubectl rollout status deployment/webapp -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/overflow-webapp -n ${{ env.NAMESPACE }} --timeout=5m
 
       - name: 📊 Deployment status
         run: |
@@ -262,4 +271,4 @@ jobs:
           kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ env.NAMESPACE }} -- \
             curl -f -m 5 http://search-svc:8080/health || echo "⚠️ Health check failed"
           kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ env.NAMESPACE }} -- \
-            curl -f -m 5 http://webapp:3000/ || echo "⚠️ Health check failed"
+            curl -f -m 5 http://overflow-webapp:3000/ || echo "⚠️ Health check failed"

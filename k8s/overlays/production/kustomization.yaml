@@ -1,4 +1,4 @@
-﻿# Production Environment Kustomization
+# Production Environment Kustomization
 # Namespace: apps-production | Replicas: 3 per service (high availability)
 
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -12,7 +12,7 @@ resources:
   - ../../base/webapp
   - ingress.yaml
 
-# Image tags updated by CI/CD
+# Image tags updated by CI/C
 images:
   - name: ghcr.io/placeholder/overflow-question
     newName: ghcr.io/GITHUB_USERNAME/overflow-question
@@ -63,7 +63,7 @@ replicas:
     count: 3
   - name: search-svc
     count: 3
-  - name: webapp
+  - name: overflow-webapp
     count: 3
 
 # Production-specific resource adjustments
@@ -132,4 +132,4 @@ patches:
         value: 1000m
     target:
       kind: Deployment
-      name: webapp
+      name: overflow-webapp

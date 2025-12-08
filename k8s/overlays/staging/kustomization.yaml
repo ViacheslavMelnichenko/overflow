@@ -1,4 +1,4 @@
-﻿# Staging Environment Kustomization
+# Staging Environment Kustomization
 # Namespace: apps-staging | Replicas: 2 per service
 
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -9,6 +9,7 @@ namespace: apps-staging
 resources:
   - ../../base/question-svc
   - ../../base/search-svc
+  - ../../base/overflow-webapp
   - ingress.yaml
 
 # Image tags updated by CI/CD
@@ -60,7 +61,7 @@ replicas:
     count: 2
   - name: search-svc
     count: 2
-  - name: webapp
+  - name: overflow-webapp
     count: 2
 
 
