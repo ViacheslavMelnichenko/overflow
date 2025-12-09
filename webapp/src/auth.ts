@@ -1,0 +1,88 @@
+import NextAuth from "next-auth"
+import Keycloak from "next-auth/providers/keycloak"
+import {authConfig} from "@/lib/config";
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+    trustHost: true,
+    secret: authConfig.secret,
+    debug: true,
+    providers: [Keycloak({
+        clientId: authConfig.kcClientId,
+        clientSecret: authConfig.kcSecret,
+        issuer: authConfig.kcIssuer,
+        authorization: {
+            params: {scope: 'openid profile email offline_access'},
+            url: `${authConfig.kcIssuer}/protocol/openid-connect/auth`
+        },
+        token: `${authConfig.kcInternal}/protocol/openid-connect/token`,
+        userinfo: `${authConfig.kcInternal}/protocol/openid-connect/userinfo`,
+    })],
+    callbacks: {
+        async jwt({token, account, profile}) {
+            const now = Math.floor(Date.now() / 1000);
+            
+            if (profile && profile.sub) {
+                token.sub = profile.sub
+            }
+            
+            if (account && account.access_token && account.refresh_token) {
+                token.accessToken = account.access_token
+                token.refreshToken = account.refresh_token;
+                token.accessTokenExpires = now + account.expires_in!;
+                token.error = undefined;
+                return token;
+            }
+            
+            if (token.accessTokenExpires && now < token.accessTokenExpires) {
+                return token;
+            }
+            
+            try {
+                const response = await fetch(`${authConfig.kcInternal}/protocol/openid-connect/token`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({
+                        grant_type: 'refresh_token',
+                        client_id: authConfig.kcClientId,
+                        client_secret: authConfig.kcSecret,
+                        refresh_token: token.refreshToken as string
+                    })
+                })
+                
+                const refreshed = await response.json()
+                
+                if (!response.ok) {
+                    console.error('[auth] Failed to refresh token:', {
+                        status: response.status,
+                        error: refreshed
+                    });
+                    token.error = 'RefreshAccessTokenError';
+                    return token;
+                }
+                
+                token.accessToken = refreshed.access_token;
+                token.refreshToken = refreshed.refresh_token;
+                token.accessTokenExpires = now + refreshed.expires_in!;
+            } catch (error) {
+                console.error('[auth] Exception during token refresh:', error);
+                token.error = 'RefreshAccessTokenError';
+            }
+            
+            return token;
+        },
+        async session({session, token}) {
+            if (token.sub) {
+                session.user.id = token.sub
+            }
+            
+            if (token.accessToken) {
+                session.accessToken = token.accessToken;
+            }
+            
+            if (token.accessTokenExpires) {
+                session.expires = new Date(token.accessTokenExpires * 1000) as unknown as typeof session.expires;
+            }
+            return session;
+        }
+    }
+})

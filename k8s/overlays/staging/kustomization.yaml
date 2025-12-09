@@ -1,4 +1,4 @@
-﻿# Staging Environment Kustomization
+# Staging Environment Kustomization
 # Namespace: apps-staging | Replicas: 2 per service
 
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -9,6 +9,7 @@ namespace: apps-staging
 resources:
   - ../../base/question-svc
   - ../../base/search-svc
+  - ../../base/overflow-webapp
   - ingress.yaml
 
 # Image tags updated by CI/CD
@@ -19,12 +20,25 @@ images:
   - name: ghcr.io/placeholder/overflow-search
     newName: ghcr.io/GITHUB_USERNAME/overflow-search
     newTag: latest
+  - name: ghcr.io/placeholder/overflow-webapp
+    newName: ghcr.io/GITHUB_USERNAME/overflow-webapp
+    newTag: latest
 
 configMapGenerator:
   - name: app-config
     behavior: create
     literals:
       - aspnetcore-environment=Staging
+  - name: webapp-config
+    behavior: create
+    literals:
+      - API_URL=PLACEHOLDER
+      - AUTH_KEYCLOAK_ID=PLACEHOLDER
+      - AUTH_KEYCLOAK_ISSUER=PLACEHOLDER
+      - AUTH_KEYCLOAK_ISSUER_INTERNAL=PLACEHOLDER
+      - AUTH_URL=PLACEHOLDER
+      - AUTH_URL_INTERNAL=PLACEHOLDER
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=PLACEHOLDER
 
 # Secrets replaced by CI/CD with actual values from GitHub Secrets
 secretGenerator:
@@ -35,6 +49,13 @@ secretGenerator:
       - rabbitmq-connection=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
       - typesense-connection=http://typesense.infra-staging.svc.cluster.local:8108
       - typesense-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+  - name: webapp-secrets
+    behavior: create
+    literals:
+      - auth-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - auth-keycloak-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - cloudinary-api-key=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
+      - cloudinary-api-secret=PLACEHOLDER_WILL_BE_REPLACED_BY_CICD
 
 labels:
   - pairs:
@@ -45,6 +66,8 @@ replicas:
   - name: question-svc
     count: 2
   - name: search-svc
+    count: 2
+  - name: overflow-webapp
     count: 2
 
 
