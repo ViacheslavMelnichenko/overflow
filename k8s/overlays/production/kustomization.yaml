@@ -66,11 +66,11 @@ labels:
 
 replicas:
   - name: question-svc
-    count: 3
+    count: 2
   - name: search-svc
-    count: 3
+    count: 2
   - name: overflow-webapp
-    count: 3
+    count: 2
 
 # Production-specific resource adjustments
 patches:
