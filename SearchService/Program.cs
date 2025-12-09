@@ -1,13 +1,13 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Overflow.ServiceDefaults;
 using Overflow.ServiceDefaults.Common;
 using SearchService.Extensions;
 using SearchService.Health;
 using Wolverine.RabbitMQ;
+using ConfigurationExtensions = Overflow.ServiceDefaults.Common.ConfigurationExtensions;
 
-var builder = WebApplication.CreateBuilder(args);
+// Use extension method to create builder without file watching (prevents inotify exhaustion in containers)
+var builder = ConfigurationExtensions.CreateBuilderWithoutFileWatching(args);
 
-builder.Configuration.AddEnvironmentVariables();
 builder.ConfigureKeycloakFromSettings();
 
 // Add services to the container.
