@@ -3,6 +3,7 @@
 import {Button} from "@heroui/button";
 import {Tab, Tabs} from "@heroui/tabs";
 import {useTagStore} from "@/lib/hooks/useTagStore";
+import Link from "next/link";
 
 type Props = {
     tag?: string;
@@ -27,9 +28,11 @@ export default function QuestionsHeader({tag, total}: Props) {
                     <p className='font-light'>{selectedTag?.description}</p>
                 </div>
                 
-                <Button href='/questions/ask' color='secondary'>
-                    Ask Question
-                </Button>
+                <Link href='/questions/ask'>
+                    <Button color='secondary'>
+                        Ask Question
+                    </Button>
+                </Link>
             </div>
             <div className='flex justify-between px-6 items-center'>
                 <div>{total} {total === 1 ? 'Question' : 'Questions'}</div>
