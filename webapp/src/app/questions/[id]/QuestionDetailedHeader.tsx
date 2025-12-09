@@ -3,29 +3,29 @@ import {Button} from "@heroui/button";
 import {fuzzyTimeAgo} from "@/lib/util";
 import {getCurrentUser} from "@/lib/actions/auth-actions";
 import DeleteQuestionButton from "@/app/questions/[id]/DeleteQuestionButton";
+import Link from "next/link";
 
 type Props = {
     question: Question;
 }
 
-export default async function QuestionDetailedHeader({ question }: Props) {
+export default async function QuestionDetailedHeader({question}: Props) {
     const currentUser = await getCurrentUser();
-    
+
     return (
         <div className='flex flex-col w-full border-b gap-4 pb-4 px-6'>
             <div className='flex justify-between gap-4'>
                 <div className='text-3xl font-semibold first-letter:uppercase'>
                     {question.title}
                 </div>
-                <Button
-                    href='/questions/ask'
-                    color='secondary'
-                    className='w-[20%]'
-                >
-                    Ask Question
-                </Button>
+
+                <Link href='/questions/ask'>
+                    <Button color='secondary'>
+                        Ask Question
+                    </Button>
+                </Link>
             </div>
-            
+
             <div className='flex justify-between items-center'>
                 <div className='flex items-center gap-6'>
                     <div className='flex items-center gap-3'>
@@ -45,21 +45,23 @@ export default async function QuestionDetailedHeader({ question }: Props) {
                 </div>
 
                 {currentUser?.id === question.askerId &&
-                <div className='flex items-center gap-3'>
-                    <Button
-                        href={`/questions/${question.id}/edit`}
-                        size='sm'
-                        variant='faded'
-                        color='primary'
-                    >
-                        Edit
-                    </Button>
-                    <DeleteQuestionButton questionId={question.id} />
-                </div>}
+                    <div className='flex items-center gap-3'>
+
+                        <Link href={`/questions/${question.id}/edit`}>
+                            <Button
+                                size='sm'
+                                variant='faded'
+                                color='primary'
+                            >
+                                Edit
+                            </Button>
+                        </Link>
+
+                        <DeleteQuestionButton questionId={question.id}/>
+                    </div>}
             </div>
-            
-            
-            
+
+
         </div>
     );
 }

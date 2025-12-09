@@ -1,4 +1,5 @@
 import {Button} from "@heroui/button";
+import Link from "next/link";
 
 export default function NotFound() {
     return (
@@ -8,7 +9,9 @@ export default function NotFound() {
                 <p className='text-lg text-foreground-500'>
                     Sorry, the page you are looking for doesn&#39;t exist
                 </p>
-                <Button href='/' color='primary'>Go Home</Button>
+                <Link href='/'>
+                    <Button color='primary'>Go Home</Button>
+                </Link>
             </div>
         </div>
     );

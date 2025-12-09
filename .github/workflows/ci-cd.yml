@@ -216,6 +216,13 @@ jobs:
           echo "=== Logs from overflow-webapp ==="
           kubectl logs -n ${{ env.NAMESPACE }} -l app=overflow-webapp --tail=30 --prefix=true || true
 
+      - name: 🧹 Cleanup old resources
+        run: |
+          echo "🧹 Cleaning up old Kubernetes resources..."
+          chmod +x k8s/scripts/cleanup-k8s-resources.sh
+          ./k8s/scripts/cleanup-k8s-resources.sh ${{ env.NAMESPACE }}
+        continue-on-error: true  # Don't fail deployment if cleanup has issues
+
   # ============================================================================
   # PRODUCTION DEPLOYMENT (main branch → apps-production namespace)
   # ============================================================================
@@ -323,3 +330,11 @@ jobs:
             curl -f -m 5 http://search-svc:8080/health || echo "⚠️ Health check failed"
           kubectl run curl-test --image=curlimages/curl --rm -i --restart=Never -n ${{ env.NAMESPACE }} -- \
             curl -f -m 5 http://overflow-webapp:3000/ || echo "⚠️ Health check failed"
+
+      - name: 🧹 Cleanup old resources
+        run: |
+          echo "🧹 Cleaning up old Kubernetes resources..."
+          chmod +x k8s/scripts/cleanup-k8s-resources.sh
+          ./k8s/scripts/cleanup-k8s-resources.sh ${{ env.NAMESPACE }}
+        continue-on-error: true  # Don't fail deployment if cleanup has issues
+
