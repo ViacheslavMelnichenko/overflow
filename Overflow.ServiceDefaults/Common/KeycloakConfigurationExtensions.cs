@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Overflow.Common.Options;
 
-namespace Overflow.ServiceDefaults;
+namespace Overflow.ServiceDefaults.Common;
 
 public static class KeycloakConfigurationExtensions
 {
