@@ -285,6 +285,21 @@ jobs:
           sed -i "s|AUTH_URL_INTERNAL=PLACEHOLDER|AUTH_URL_INTERNAL=${AUTH_URL_INTERNAL}|g" kustomization.yaml
           sed -i "s|NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=PLACEHOLDER|NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}|g" kustomization.yaml
 
+      - name: 🔐 Create image pull secret
+        run: |
+          # Delete existing secret if it exists
+          kubectl delete secret ghcr-pull-secret -n ${{ env.NAMESPACE }} 2>/dev/null || echo "Secret doesn't exist, continuing..."
+          
+          # Create new secret from GitHub token
+          kubectl create secret docker-registry ghcr-pull-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --docker-email=${{ github.actor }}@users.noreply.github.com \
+            -n ${{ env.NAMESPACE }}
+          
+          echo "✅ ghcr-pull-secret created successfully"
+
       - name: 🔐 Inject secrets
         working-directory: ./k8s/overlays/${{ env.OVERLAY }}
         run: |
