@@ -4,6 +4,8 @@
 
 # Create a service for Keycloak metrics with Prometheus annotations
 resource "kubernetes_service_v1" "keycloak_metrics" {
+  depends_on = [kubernetes_namespace.infra_production, helm_release.keycloak]
+
   metadata {
     name      = "keycloak-metrics"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
@@ -31,7 +33,4 @@ resource "kubernetes_service_v1" "keycloak_metrics" {
 
     type = "ClusterIP"
   }
-
-  depends_on = [helm_release.keycloak]
 }
-

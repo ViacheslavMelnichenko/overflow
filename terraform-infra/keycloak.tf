@@ -9,6 +9,8 @@ resource "helm_release" "keycloak" {
   chart            = "keycloak"
   create_namespace = false
 
+  depends_on = [kubernetes_namespace.infra_production]
+
   set {
     name  = "keycloak.adminUser"
     value = var.keycloak_admin_user

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Overflow.ServiceDefaults;
 using Overflow.ServiceDefaults.Common;
 using SearchService.Extensions;

@@ -10,6 +10,8 @@ resource "helm_release" "postgres_staging" {
   version          = "18.1.13"
   create_namespace = false
 
+  depends_on = [kubernetes_namespace.infra_staging]
+
   set_sensitive {
     name  = "auth.postgresPassword"
     value = var.pg_staging_password
@@ -48,6 +50,8 @@ resource "helm_release" "postgres_production" {
   chart            = "postgresql"
   version          = "18.1.13"
   create_namespace = false
+
+  depends_on = [kubernetes_namespace.infra_production]
 
   set_sensitive {
     name  = "auth.postgresPassword"

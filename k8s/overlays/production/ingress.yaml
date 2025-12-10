@@ -1,4 +1,4 @@
-﻿# Production Application Ingress
+# Production Application Ingress
 # Host: overflow-api.helios
 # Routes external traffic to Question and Search services
 
@@ -46,4 +46,25 @@ spec:
                 name: search-svc
                 port:
                   number: 8080
-
+---
+# WebApp: / -> overflow-webapp:3000/
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: overflow-webapp-ingress
+  namespace: apps-production
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: overflow.helios
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: overflow-webapp
+                port:
+                  number: 3000
