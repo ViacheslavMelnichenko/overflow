@@ -38,6 +38,8 @@ resource "helm_release" "ingress_nginx" {
 # Target: keycloak:8080 in infra-production namespace
 
 resource "kubernetes_ingress_v1" "keycloak_global" {
+  depends_on = [kubernetes_namespace.infra_production, helm_release.ingress_nginx, helm_release.keycloak]
+
   metadata {
     name      = "keycloak-global"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
@@ -70,7 +72,6 @@ resource "kubernetes_ingress_v1" "keycloak_global" {
     }
   }
 
-  depends_on = [helm_release.keycloak]
 }
 
 ############################
@@ -229,7 +230,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
     }
   }
 
-  depends_on = [helm_release.rabbitmq_production]
+  depends_on = [kubernetes_namespace.infra_production, helm_release.rabbitmq_production, helm_release.ingress_nginx]
 }
 
 resource "kubernetes_ingress_v1" "typesense_dashboard_ui_production" {
@@ -302,5 +303,5 @@ resource "kubernetes_ingress_v1" "typesense_api_endpoint_production" {
     }
   }
 
-  depends_on = [kubernetes_stateful_set.typesense_production]
+  depends_on = [kubernetes_namespace.infra_production, kubernetes_stateful_set.typesense_production, helm_release.ingress_nginx]
 }

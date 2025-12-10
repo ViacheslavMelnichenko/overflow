@@ -8,6 +8,8 @@ resource "helm_release" "rabbitmq_staging" {
   repository = "oci://registry-1.docker.io/cloudpirates"
   chart      = "rabbitmq"
 
+  depends_on = [kubernetes_namespace.infra_staging]
+  
   set {
     name  = "auth.username"
     value = "admin"
@@ -29,6 +31,8 @@ resource "helm_release" "rabbitmq_production" {
   namespace  = kubernetes_namespace.infra_production.metadata[0].name
   repository = "oci://registry-1.docker.io/cloudpirates"
   chart      = "rabbitmq"
+
+  depends_on = [kubernetes_namespace.infra_production]
 
   set {
     name  = "auth.username"

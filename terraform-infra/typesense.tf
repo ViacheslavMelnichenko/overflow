@@ -3,6 +3,7 @@
 ############################
 
 resource "kubernetes_stateful_set" "typesense_staging" {
+  depends_on = [kubernetes_namespace.infra_staging]
   metadata {
     name      = "typesense"
     namespace = kubernetes_namespace.infra_staging.metadata[0].name
@@ -144,6 +145,8 @@ resource "kubernetes_service" "typesense_staging" {
 
 # Typesense Dashboard UI for Staging
 resource "kubernetes_deployment" "typesense_dashboard_staging" {
+  depends_on = [kubernetes_namespace.infra_staging]
+
   metadata {
     name      = "typesense-dashboard"
     namespace = kubernetes_namespace.infra_staging.metadata[0].name
@@ -217,6 +220,8 @@ resource "kubernetes_service" "typesense_dashboard_staging" {
 ############################
 
 resource "kubernetes_stateful_set" "typesense_production" {
+  depends_on = [kubernetes_namespace.infra_production]
+
   metadata {
     name      = "typesense"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
@@ -358,6 +363,8 @@ resource "kubernetes_service" "typesense_production" {
 
 # Typesense Dashboard UI for Production
 resource "kubernetes_deployment" "typesense_dashboard_production" {
+  depends_on = [kubernetes_namespace.infra_production]
+
   metadata {
     name      = "typesense-dashboard"
     namespace = kubernetes_namespace.infra_production.metadata[0].name
@@ -406,6 +413,8 @@ resource "kubernetes_deployment" "typesense_dashboard_production" {
 }
 
 resource "kubernetes_service" "typesense_dashboard_production" {
+  depends_on = [kubernetes_namespace.infra_production]
+
   metadata {
     name      = "typesense-dashboard"
     namespace = kubernetes_namespace.infra_production.metadata[0].name

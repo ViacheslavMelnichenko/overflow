@@ -9,6 +9,8 @@ resource "helm_release" "grafana" {
   chart      = "grafana"
   version    = "10.2.0"
 
+  depends_on = [kubernetes_namespace.monitoring, helm_release.loki, helm_release.tempo, helm_release.prometheus, helm_release.ingress_nginx]
+
   set {
     name  = "adminPassword"
     value = var.grafana_admin_password
@@ -110,11 +112,6 @@ resource "helm_release" "grafana" {
     value = "http://prometheus-server"
   }
 
-  depends_on = [
-    helm_release.loki,
-    helm_release.tempo,
-    helm_release.prometheus
-  ]
 }
 
 ############################
@@ -198,6 +195,8 @@ resource "helm_release" "prometheus" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "prometheus"
   version    = "25.8.0"
+
+  depends_on = [kubernetes_namespace.monitoring, helm_release.ingress_nginx]
 
 
   set {

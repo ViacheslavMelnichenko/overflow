@@ -42,5 +42,9 @@ resource "kubernetes_namespace" "ingress" {
   metadata {
     name = "ingress"
   }
+  
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
