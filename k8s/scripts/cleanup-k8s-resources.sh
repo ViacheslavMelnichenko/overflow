@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # Kubernetes Resource Cleanup Script
 # Safely removes old/unused resources like secrets, configmaps, and replicasets
 # Usage: ./cleanup-k8s-resources.sh <namespace> [--dry-run]
@@ -67,15 +67,21 @@ is_resource_used() {
     
     # Check deployments
     local used_in_deployments=$(kubectl get deployments -n $NAMESPACE -o json 2>/dev/null | \
-        grep -c "\"$resource_name\"" || echo "0")
+        grep -c "\"$resource_name\"" 2>/dev/null || echo "0")
+    used_in_deployments=${used_in_deployments//[^0-9]/}
+    used_in_deployments=${used_in_deployments:-0}
     
     # Check pods
     local used_in_pods=$(kubectl get pods -n $NAMESPACE -o json 2>/dev/null | \
-        grep -c "\"$resource_name\"" || echo "0")
+        grep -c "\"$resource_name\"" 2>/dev/null || echo "0")
+    used_in_pods=${used_in_pods//[^0-9]/}
+    used_in_pods=${used_in_pods:-0}
     
     # Check statefulsets
     local used_in_sts=$(kubectl get statefulsets -n $NAMESPACE -o json 2>/dev/null | \
-        grep -c "\"$resource_name\"" || echo "0")
+        grep -c "\"$resource_name\"" 2>/dev/null || echo "0")
+    used_in_sts=${used_in_sts//[^0-9]/}
+    used_in_sts=${used_in_sts:-0}
     
     local total_usage=$((used_in_deployments + used_in_pods + used_in_sts))
     
@@ -485,8 +491,6 @@ echo ""
 echo "💡 Tip: Run with --dry-run flag to preview changes before deletion"
 echo "   Example: $0 $NAMESPACE --dry-run"
 echo ""
-    fi
-fi
 
 # ============================================================================
 # 6. Clean up ORPHANED SERVICES (without endpoints/pods)
