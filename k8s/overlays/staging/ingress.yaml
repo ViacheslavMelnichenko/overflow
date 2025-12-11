@@ -1,20 +1,42 @@
 # Staging Application Ingress
-# Host: overflow-api-staging.helios
-# Routes external traffic to Question and Search services
+# Routes external traffic to Question and Search services via staging domain
 
 ---
-# Question Service: /questions -> question-svc:8080/questions
-# Question Service: /tags -> question-svc:8080/tags
+# Question Service: /api/questions -> question-svc:8080/questions
+# Question Service: /api/tags -> question-svc:8080/tags
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: question-svc-ingress
   namespace: apps-staging
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.devoverflow.org
+      secretName: webapp-staging-tls
   rules:
+    - host: staging.devoverflow.org
+      http:
+        paths:
+          - path: /api/questions(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: question-svc
+                port:
+                  number: 8080
+          - path: /api/tags(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: question-svc
+                port:
+                  number: 8080
     - host: overflow-api-staging.helios
       http:
         paths:
@@ -33,17 +55,33 @@ spec:
                 port:
                   number: 8080
 ---
-# Search Service: /search -> search-svc:8080/search
+# Search Service: /api/search -> search-svc:8080/search
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: search-svc-ingress
   namespace: apps-staging
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.devoverflow.org
+      secretName: webapp-staging-tls
   rules:
+    - host: staging.devoverflow.org
+      http:
+        paths:
+          - path: /api/search(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: search-svc
+                port:
+                  number: 8080
     - host: overflow-api-staging.helios
       http:
         paths:
@@ -62,10 +100,25 @@ metadata:
   name: overflow-webapp-ingress
   namespace: apps-staging
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - staging.devoverflow.org
+      secretName: webapp-staging-tls
   rules:
+    - host: staging.devoverflow.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: overflow-webapp
+                port:
+                  number: 3000
     - host: overflow-staging.helios
       http:
         paths:

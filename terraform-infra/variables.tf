@@ -10,6 +10,19 @@ variable "enable_typesense_clusters" {
   description = "Create TypesenseCluster resources (set to true only after the CRD is installed)."
 }
 
+# Cloudflare Configuration
+variable "cloudflare_api_token" {
+  type        = string
+  sensitive   = true
+  description = "Cloudflare API token for DDNS updates"
+}
+
+# Let's Encrypt Configuration
+variable "letsencrypt_email" {
+  type        = string
+  description = "Email address for Let's Encrypt certificate notifications and account recovery"
+}
+
 # Postgres passwords
 variable "pg_staging_password" {
   type      = string

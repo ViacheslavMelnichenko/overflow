@@ -34,7 +34,7 @@ resource "helm_release" "ingress_nginx" {
 # Exposes Keycloak authentication service for the entire cluster.
 # Used by both staging and production environments.
 #
-# Host: keycloak.helios
+# Host: keycloak.devoverflow.org (production), keycloak-staging.devoverflow.org (staging)
 # Target: keycloak:8080 in infra-production namespace
 
 resource "kubernetes_ingress_v1" "keycloak_global" {
@@ -46,10 +46,61 @@ resource "kubernetes_ingress_v1" "keycloak_global" {
     labels = {
       app = "keycloak"
     }
+    annotations = {
+      "cert-manager.io/cluster-issuer" = "letsencrypt-production"
+    }
   }
 
   spec {
     ingress_class_name = "nginx"
+
+    tls {
+      hosts = [
+        "keycloak.devoverflow.org",
+        "keycloak-staging.devoverflow.org"
+      ]
+      secret_name = "keycloak-tls"
+    }
+
+    rule {
+      host = "keycloak.devoverflow.org"
+
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "keycloak"
+              port {
+                number = 8080
+              }
+            }
+          }
+        }
+      }
+    }
+
+    rule {
+      host = "keycloak-staging.devoverflow.org"
+
+      http {
+        path {
+          path      = "/"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "keycloak"
+              port {
+                number = 8080
+              }
+            }
+          }
+        }
+      }
+    }
 
     rule {
       host = "keycloak.helios"
@@ -199,7 +250,7 @@ resource "kubernetes_ingress_v1" "typesense_api_endpoint_staging" {
 # PRODUCTION INFRASTRUCTURE INGRESSES
 ############################
 
-# RabbitMQ Management UI - overflow-rabbit.helios
+# RabbitMQ Management UI - overflow-rabbit.helios (local only)
 resource "kubernetes_ingress_v1" "rabbitmq_production" {
   metadata {
     name      = "rabbitmq-production"
@@ -208,6 +259,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
 
   spec {
     ingress_class_name = "nginx"
+
 
     rule {
       host = "overflow-rabbit.helios"
@@ -221,7 +273,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
             service {
               name = "rabbitmq-production"
               port {
-                number = 15672  # RabbitMQ Management UI port
+                number = 15672
               }
             }
           }
@@ -233,6 +285,7 @@ resource "kubernetes_ingress_v1" "rabbitmq_production" {
   depends_on = [kubernetes_namespace.infra_production, helm_release.rabbitmq_production, helm_release.ingress_nginx]
 }
 
+# Typesense Dashboard - overflow-typesense.helios (local only)
 resource "kubernetes_ingress_v1" "typesense_dashboard_ui_production" {
   metadata {
     name      = "typesense-dashboard-ui"
@@ -241,6 +294,7 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_ui_production" {
 
   spec {
     ingress_class_name = "nginx"
+
 
     rule {
       host = "overflow-typesense.helios"
@@ -266,7 +320,7 @@ resource "kubernetes_ingress_v1" "typesense_dashboard_ui_production" {
   depends_on = [kubernetes_deployment.typesense_dashboard_production]
 }
 
-# Typesense API endpoint for dashboard to connect to
+# Typesense API endpoint - overflow-typesense-api.helios (local only)
 resource "kubernetes_ingress_v1" "typesense_api_endpoint_production" {
   metadata {
     name      = "typesense-api-production"
@@ -281,6 +335,7 @@ resource "kubernetes_ingress_v1" "typesense_api_endpoint_production" {
 
   spec {
     ingress_class_name = "nginx"
+
 
     rule {
       host = "overflow-typesense-api.helios"
