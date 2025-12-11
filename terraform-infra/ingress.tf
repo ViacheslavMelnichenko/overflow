@@ -47,7 +47,16 @@ resource "kubernetes_ingress_v1" "keycloak_global" {
       app = "keycloak"
     }
     annotations = {
-      "cert-manager.io/cluster-issuer" = "letsencrypt-production"
+      "cert-manager.io/cluster-issuer"                      = "letsencrypt-production"
+      "nginx.ingress.kubernetes.io/proxy-buffer-size"       = "128k"
+      "nginx.ingress.kubernetes.io/proxy-buffers-number"    = "4"
+      "nginx.ingress.kubernetes.io/proxy-busy-buffers-size" = "256k"
+      "nginx.ingress.kubernetes.io/ssl-redirect"            = "true"
+      "nginx.ingress.kubernetes.io/force-ssl-redirect"      = "true"
+      # Backend protocol should be HTTP, nginx handles SSL termination
+      "nginx.ingress.kubernetes.io/backend-protocol"        = "HTTP"
+      # Explicitly set X-Forwarded-Proto to https for SSL-terminated connections
+      "nginx.ingress.kubernetes.io/upstream-vhost"          = "$host"
     }
   }
 
