@@ -34,7 +34,7 @@ resource "helm_release" "ingress_nginx" {
 # Exposes Keycloak authentication service for the entire cluster.
 # Used by both staging and production environments.
 #
-# Host: keycloak.devoverflow.org (production), keycloak-staging.devoverflow.org (staging)
+# Host: keycloak.devoverflow.org (serves both production and staging realms)
 # Target: keycloak:8080 in infra-production namespace
 
 resource "kubernetes_ingress_v1" "keycloak_global" {
@@ -65,8 +65,7 @@ resource "kubernetes_ingress_v1" "keycloak_global" {
 
     tls {
       hosts = [
-        "keycloak.devoverflow.org",
-        "keycloak-staging.devoverflow.org"
+        "keycloak.devoverflow.org"
       ]
       secret_name = "keycloak-tls"
     }
@@ -74,25 +73,6 @@ resource "kubernetes_ingress_v1" "keycloak_global" {
     rule {
       host = "keycloak.devoverflow.org"
 
-      http {
-        path {
-          path      = "/"
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = "keycloak"
-              port {
-                number = 8080
-              }
-            }
-          }
-        }
-      }
-    }
-
-    rule {
-      host = "keycloak-staging.devoverflow.org"
 
       http {
         path {
