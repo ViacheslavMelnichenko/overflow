@@ -57,6 +57,9 @@ spec:
               value: "search-service"
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "deployment.environment=$(ASPNETCORE_ENVIRONMENT)"
+            # Disable file watching to avoid inotify limits
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: "true"
           livenessProbe:
             httpGet:
               path: /alive
